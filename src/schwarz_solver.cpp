@@ -62,13 +62,13 @@ LocalProblem::LocalProblem(int Nnodes_global,
 {
   // Extend core: every local subproblem needs l extra neighbor nodes
   // on each side (if available from neighboring subdomains).
-  
+  //
   // [ext_s, ext_e] is the actual working region for this process.
-  
+  //
   // The overlap allows information to propagate between subdomains:
   //   - larger l: faster convergence, more memory, more communication
   //   - smaller l: slower convergence, less memory, less communication
-  
+  //
   // Minimum overlap is l = 1 (one layer of nodes)
   ext_s = std::max(0, core_s - l);            // do not go below 0
   ext_e = std::min(Nglob - 1, core_e + l);    // do not exceed Nglob-1
@@ -86,7 +86,6 @@ LocalProblem::LocalProblem(int Nnodes_global,
 
 // Forcing term f(x); here constant
 double LocalProblem::forcing(int, double) const { return 1.0; }
-
 
 // ASSEMBLE LOCAL TRIDIAGONAL SYSTEM
 // h = mesh size
@@ -113,8 +112,6 @@ void LocalProblem::assemble(double h) {
         R[i] = forcing(gidx, h);
     }
 }
-
-
 
 
 
