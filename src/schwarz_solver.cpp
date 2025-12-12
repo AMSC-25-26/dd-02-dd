@@ -60,8 +60,18 @@ LocalProblem::LocalProblem(int Nnodes_global,
       l(overlap_l), mu(mu_), c(c_),
       ua(ua_), ub(ub_)
 {
+   ext_s = std::max(0, core_s - l);            // do not go below 0
+   ext_e = std::min(Nglob - 1, core_e + l);    // do not exceed Nglob-1
+   ext_size = ext_e - ext_s + 1;               // number of local nodes
+   core_size = core_e - core_s + 1;
+
+  u.assign(ext_size, 0.0);
+  u_old.assign(ext_size, 0.0);
     
 }
+
+
+double LocalProblem::forcing(int, double) const { return 1.0; }
 
 
 // ======================================================
