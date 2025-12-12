@@ -4,9 +4,9 @@
 int main(int argc, char** argv) {
 
     // Default parameters
-    int Nnodes = 200;            // total number of nodes in the 1D grid
-    double mu_in = 0.01;         // diffusion coefficient
-    double c_in = 5.0;           // reaction coefficient
+    const int Nnodes = 200;            // total number of nodes in the 1D grid
+    const double mu_in = 0.01;         // diffusion coefficient
+    const double c_in = 5.0;           // reaction coefficient
 
    // ..... PARAMETERS NEEDED BY PARALLEL VERSION .....
    // -> tol, max_it, overlap_l
