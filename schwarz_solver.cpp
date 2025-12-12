@@ -11,7 +11,38 @@ void TridiagonalSolver::solve(const std::vector<double> &a,
                               const std::vector<double> &r,
                               std::vector<double> &x)
 {
-    
+    const int n = b.size();
+    x.assign(n, 0.0); 
+
+    // Trivial cases
+    if (n == 0) return;
+    if (n == 1) { x[0] = r[0] / b[0]; return; }
+
+    std::vector<double> cp(n, 0.0), dp(n, 0.0);
+
+    cp[0] = c[0] / b[0];
+    dp[0] = r[0] / b[0];
+
+    // FORWARD ELIMINATION: eliminate sub-diagonal
+    for (int i = 1; i < n; ++i) {
+        // Compute modified diagonal element
+        double denom = b[i] - a[i] * cp[i-1];
+
+        // Avoid division by zero, substitute small value
+        if (std::abs(denom) < 1e-18)  
+            denom = (denom >= 0 ? 1e-18 : -1e-18); 
+            
+        // Update modified super-diagonal (except last element)
+        cp[i] = (i < n-1) ? c[i] / denom : 0.0;
+
+        // Update modified RHS
+        dp[i] = (r[i] - a[i] * dp[i-1]) / denom;
+    }
+
+    // BACK SUBSTITUTION: solve for x
+    x[n-1] = dp[n-1];
+    for (int i = n-2; i >= 0; --i)
+        x[i] = dp[i] - cp[i] * x[i+1];
 }
 
 
