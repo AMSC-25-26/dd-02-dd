@@ -39,7 +39,7 @@ void TridiagonalSolver::solve(const std::vector<double> &a,
         dp[i] = (r[i] - a[i] * dp[i-1]) / denom;
     }
 
-    // BACK SUBSTITUTION: solve for x
+    // BACKWARD SUBSTITUTION: solve for x
     x[n-1] = dp[n-1];
     for (int i = n-2; i >= 0; --i)
         x[i] = dp[i] - cp[i] * x[i+1];
