@@ -88,6 +88,32 @@ LocalProblem::LocalProblem(int Nnodes_global,
 double LocalProblem::forcing(int, double) const { return 1.0; }
 
 
+// ASSEMBLE LOCAL TRIDIAGONAL SYSTEM
+// h = mesh size
+void LocalProblem::assemble(double h) {
+
+    // Initialize vectors
+    A.assign(ext_size, 0.0);    
+    B.assign(ext_size, 0.0);
+    C.assign(ext_size, 0.0);
+    R.assign(ext_size, 0.0);
+
+    double diag_off = -mu / (h*h);
+    double diag_mid = 2.0 * mu / (h*h) + c;
+
+    for (int i = 0; i < ext_size; ++i) {
+        int gidx = ext_s + i;  // global index of this local node
+
+        // Assign coefficients
+        A[i] = diag_off;       // coefficient of u_{i-1}
+        B[i] = diag_mid;       // coefficient of u_i
+        C[i] = diag_off;       // coefficient of u_{i+1}
+
+        // Right-hand side: evaluate forcing at node position
+        R[i] = forcing(gidx, h);
+    }
+}
+
 
 
 
