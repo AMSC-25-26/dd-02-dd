@@ -4,6 +4,13 @@
 #include <vector>
 #include <string>
 
+// ======================================================
+// ============== SEQUENTIAL SOLVER =====================
+// ======================================================
+//
+// Solve the 1D diffusion-reaction equation using a sequential
+// tridiagonal solver based on the Thomas algorithm.
+
 class SequentialSolver {
 public:
     SequentialSolver(int Nnodes, double mu, double c, double ua, double ub);
