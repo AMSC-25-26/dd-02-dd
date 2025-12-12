@@ -113,6 +113,33 @@ void LocalProblem::assemble(double h) {
     }
 }
 
+void LocalProblem::apply_dirichlet(double bc_left, double bc_right) {
+    
+    // Left boundary: 
+    // IF this process owns the global left boundary, then apply Dirichlet BC
+    // ELSE use the value we received from left neighbor in previous iteration
+    if (ext_s == 0) {  
+        B[0] = 1.0;
+        C[0] = 0.0;
+        R[0] = ua;
+    } else {
+        R[0] -= A[0] * bc_left;
+        A[0] = 0.0;
+    }
+
+    // Right boundary:
+    // IF this process owns the global right boundary, then apply Dirichlet BC
+    // ELSE use the value we received from right neighbor in previous iteration
+    if (ext_e == Nglob - 1) {
+        B[ext_size-1] = 1.0;
+        A[ext_size-1] = 0.0;
+        R[ext_size-1] = ub;
+    } else {
+        R[ext_size-1] -= C[ext_size-1] * bc_right;
+        C[ext_size-1] = 0.0;
+    }
+}
+
 
 
 // ======================================================
