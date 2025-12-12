@@ -62,7 +62,7 @@ void SequentialSolver::solve() {
 
 void SequentialSolver::save_solution(const std::string& filename) {
     std::ofstream ofs(filename);
-    ofs << "x,u\n";
+    ofs << "x,u_s\n";
     for (int i = 0; i < N; ++i) {
         ofs << i * h << "," << u[i] << "\n";
     }
