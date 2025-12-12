@@ -7,6 +7,20 @@
 // ======================================================
 // ======= TRIDIAGONAL SOLVER - Thomas algorithm ========
 // ======================================================
+// ======================================================
+// ======= TRIDIAGONAL SOLVER - Thomas algorithm ========
+// ======================================================
+// 
+// Input:
+//   a   =   sub-diagonal, a[0] not used
+//   b   =   main diagonal
+//   c   =   super-diagonal, c[n-1] not used
+//   r   =   right-hand side vector
+//
+// Output:
+//   x   =   solution vector
+// 
+// Note: all vectors are of size n
 
 class TridiagonalSolver {
 public:
