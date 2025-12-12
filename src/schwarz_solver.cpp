@@ -140,6 +140,11 @@ void LocalProblem::apply_dirichlet(double bc_left, double bc_right) {
     }
 }
 
+// SOLVE LOCAL TRIDIAGONAL SYSTEM
+void LocalProblem::solve_local() {
+    TridiagonalSolver::solve(A, B, C, R, u);
+}
+
 
 
 // ======================================================
