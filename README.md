@@ -2,10 +2,10 @@
 
 This repository contains C++ implementations for solving the 1D elliptic boundary value problem
 
-$
+$$
 -\mu u''(x) + c\,u(x) = f(x), \quad x \in (a,b),\\
 u(a)=u_a,\; u(b)=u_b,
-$
+$$
 
 using **finite difference discretization** and **domain decomposition methods**, following the course notes (`dd.pdf`).
 
