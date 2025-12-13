@@ -13,7 +13,8 @@
 
 class SequentialSolver {
 public:
-    SequentialSolver(int Nnodes, double mu, double c, double ua, double ub);
+    SequentialSolver(int Nnodes, double mu, double c, double a, 
+                     double b, double ua, double ub);
     
     void solve();
     void save_solution(const std::string& filename = "sequential_solution.csv");
@@ -24,6 +25,7 @@ private:
     int N;                           // number of nodes
     double mu;                       // diffusion coefficient
     double c;                        // reaction coefficient
+    double a, b;                     // domain boundaries
     double ua, ub;                   // boundary conditions
     double h;                        // mesh size
     
