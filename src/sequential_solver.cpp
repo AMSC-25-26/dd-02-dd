@@ -22,9 +22,9 @@ SequentialSolver::SequentialSolver(int Nnodes, double mu_, double c_, double a_,
 }
 
 double SequentialSolver::forcing(int i) const {
-    double x = i * h;  // Position along the domain [0,1]
-    (void)x;           // Suppress unused variable warning
-    return 1.0;        // Example: constant forcing term
+    double x = a + i * h;  // Position along the domain [0,1]
+    (void)x;               // Suppress unused variable warning
+    return 1.0;            // Example: constant forcing term
 }
 
 void SequentialSolver::assemble() {
@@ -65,7 +65,7 @@ void SequentialSolver::save_solution(const std::string& filename) {
     std::ofstream ofs(filename);
     ofs << "x,u_s\n";
     for (int i = 0; i < N; ++i) {
-        ofs << i * h << "," << u[i] << "\n";
+        ofs << a + i * h << "," << u[i] << "\n";
     }
     ofs.close();
     std::cout << "Sequential solution saved to '" << filename << "'\n" << std::endl;
