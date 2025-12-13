@@ -106,6 +106,12 @@ void LocalProblem::solve_local() {
     u = apsc::thomasSolve(B, A, C, R);
 }
 
+double LocalProblem::value_at_global(int gidx) const {
+    if (gidx < ext_s || gidx > ext_e) return 0.0;
+    return u[gidx - ext_s];
+}
+
+
 
 
 // ======================================================
@@ -121,6 +127,19 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
       l(overlap_l), mu(mu), c(c), ua(ua), ub(ub),
       max_iter(max_iter), tol(tol)
 {
+  int base = Nglob / size;    // base number of nodes per rank
+  int rem = Nglob % size;     // remainder nodes to distribute
+
+  core_start = rank * base + std::min(rank, rem);  // starting global index of this process' core
+  core_size  = base + (rank < rem ? 1 : 0);        // number of nodes in this process' core
+  core_end   = core_start + core_size - 1;         // ending global index of this process' core (inclusive)
+
+  // Create local problem
+  local = new LocalProblem(Nglob, core_start, core_end, l, mu, c, ua, ub);
+
+ 
+  left  = (rank > 0) ? rank - 1 : MPI_PROC_NULL;
+  right = (rank < size - 1) ? rank + 1 : MPI_PROC_NULL;
 
 }
 
