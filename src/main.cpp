@@ -7,6 +7,10 @@ int main(int argc, char** argv) {
     const int Nnodes = 200;            // total number of nodes in the 1D grid
     const double mu_in = 0.01;         // diffusion coefficient
     const double c_in = 5.0;           // reaction coefficient
+    const double a = 0.0;              // left boundary of the domain
+    const double b = 1.0;              // right boundary of the domain
+    const double ua = 0.0;             // left Dirichlet BC
+    const double ub = 0.0;             // right Dirichlet BC
 
    // ..... PARAMETERS NEEDED BY PARALLEL VERSION .....
    // -> tol, max_it, overlap_l
@@ -21,7 +25,7 @@ int main(int argc, char** argv) {
         std::cout << "  RUNNING SEQUENTIAL SOLVER" << std::endl;
         std::cout << "###############################################" << std::endl;
         
-        SequentialSolver seq_solver(Nnodes, mu_in, c_in, 0.0, 0.0);
+        SequentialSolver seq_solver(Nnodes, mu_in, c_in, a, b, ua, ub);
         seq_solver.solve();
         seq_solver.save_solution("sequential_solution.csv");
         u_sequential = seq_solver.get_solution();
