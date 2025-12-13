@@ -4,8 +4,8 @@ This repository contains C++ implementations for solving the 1D elliptic boundar
 
 $$
 \begin{aligned}
--\mu u''(x) + c\,u(x) = f(x), \quad x \in (a,b),\\
-\quad u(a)=u_a,\; u(b)=u_b,
+-\mu u''(x) + cu(x) = f(x), \qquad x \in (a,b),\\
+\quad u(a)=u_a, \quad u(b)=u_b,
 \end{aligned}
 $$
 
