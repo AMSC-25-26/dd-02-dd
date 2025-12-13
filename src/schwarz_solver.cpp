@@ -243,6 +243,20 @@ void SchwarzSolver::run() {
     }
 
 
+    if(rank == 0){
+        std::cout << "================================================" << std::endl;
+        if(global_err <= tol){
+            std::cout << "  CONVERGED in " << iter << " iterations" << std::endl;
+            std::cout << "  Final error: " << std::scientific 
+                      << global_err << std::endl;
+        } else {
+            std::cout << "  NOT CONVERGED after " << iter << " iterations" << std::endl;
+            std::cout << "  Final error: " << std::scientific 
+                      << global_err << std::endl;
+        }
+        std::cout << "================================================" << std::endl;
+    }
+
     gather_and_save();
 }
 
