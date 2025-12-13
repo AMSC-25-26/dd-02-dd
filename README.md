@@ -43,7 +43,7 @@ For the hands-on, you should:
 
 ## Implemented Solvers
 
-The same discrete problem is solved using three independent approaches:
+The same discrete problem is solved using four complementary approaches:
 
 1. **Thomas Algorithm (Sequential)**  
    - Direct solver for tridiagonal systems  
@@ -57,7 +57,38 @@ The same discrete problem is solved using three independent approaches:
 3. **Eigen Sparse Direct Solver**  
    - Finite difference discretization assembled into a sparse matrix  
    - Solved using Eigen’s sparse Cholesky factorization  
-   - Provides an independent algebraic reference (non-FEM)
+   - Provides an independent algebraic reference (non-FEM)  
+
+4. **Exact Analytical Solution (Verification Benchmark)**  
+   - Closed-form solutions are derived analytically for selected right-hand sides  
+   - These solutions are used to validate numerical accuracy and convergence  
+
+   **Case 1: $f(x) = \sin(\pi x)$**
+
+   The exact solution is:
+   $$
+   u(x) = \frac{1}{\mu \pi^2 + c}\,\sin(\pi x)
+   $$
+
+   **Case 2: $f(x) = 1$**
+
+   For the reaction–diffusion case ($c > 0$), the exact solution is:
+   $$
+   u(x) =
+   \frac{1}{c}
+   \left[
+   1 -
+   \frac{\cosh\!\left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
+        {\cosh\!\left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
+   \right]
+   $$
+
+   In the limiting Poisson case ($c = 0$), the solution reduces to:
+   $$
+   u(x) = \frac{x(L-x)}{2\mu}
+   $$
+
+   These analytical solutions provide an exact reference for assessing discretization errors and validating the convergence of the numerical solvers.
 
 ---
 
