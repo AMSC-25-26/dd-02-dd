@@ -53,7 +53,7 @@ void SequentialSolver::apply_boundary_conditions() {
 void SequentialSolver::solve() {
     assemble();
     apply_boundary_conditions();
-    TridiagonalSolver::solve(A, B, C, R, u);
+    u = apsc::thomasSolve(B, A, C, R);
     
     std::cout << "\n================================================" << std::endl;
     std::cout << "  SEQUENTIAL SOLVER COMPLETED" << std::endl;
