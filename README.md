@@ -60,35 +60,49 @@ The same discrete problem is solved using four complementary approaches:
    - Provides an independent algebraic reference (non-FEM)  
 
 4. **Exact Analytical Solution (Verification Benchmark)**  
-   - Closed-form solutions are derived analytically for selected right-hand sides  
-   - These solutions are used to validate numerical accuracy and convergence  
+
+   The continuous problem reads
+   $$
+   \begin{aligned}
+   -\mu u''(x) + c u(x) &= f(x), \qquad x \in (0,L), \\
+   u(0) &= 0, \qquad u(L) = 0 .
+   \end{aligned}
+   $$
+
+   Closed-form solutions are available for the following right-hand sides.
 
    **Case 1: $f(x) = \sin(\pi x)$**
 
-   The exact solution is:
    $$
-   u(x) = \frac{1}{\mu \pi^2 + c}\,\sin(\pi x)
+   \begin{aligned}
+   u(x) &= \frac{1}{\mu \pi^2 + c}\,\sin(\pi x) .
+   \end{aligned}
    $$
 
    **Case 2: $f(x) = 1$**
 
-   For the reaction–diffusion case ($c > 0$), the exact solution is:
+   For $c > 0$:
    $$
-   u(x) =
+   \begin{aligned}
+   u(x)
+   &=
    \frac{1}{c}
    \left[
    1 -
    \frac{\cosh\!\left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
         {\cosh\!\left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
-   \right]
+   \right] .
+   \end{aligned}
    $$
 
-   In the limiting Poisson case ($c = 0$), the solution reduces to:
+   In the limiting Poisson case $c=0$:
    $$
-   u(x) = \frac{x(L-x)}{2\mu}
+   \begin{aligned}
+   u(x) &= \frac{x(L-x)}{2\mu} .
+   \end{aligned}
    $$
 
-   These analytical solutions provide an exact reference for assessing discretization errors and validating the convergence of the numerical solvers.
+   These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical solvers.
 
 ---
 
