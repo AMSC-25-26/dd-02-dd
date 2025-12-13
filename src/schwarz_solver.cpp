@@ -46,18 +46,16 @@ double LocalProblem::forcing(int, double) const { return 1.0; }
 // h = mesh size
 void LocalProblem::assemble(double h) {
 
-    // Initialize vectors
-    A.assign(ext_size, 0.0);    
-    B.assign(ext_size, 0.0);
-    C.assign(ext_size, 0.0);
+    // Initialize RHS
     R.assign(ext_size, 0.0);
 
     double diag_off = -mu / (h*h);
     double diag_mid = 2.0 * mu / (h*h) + c;
 
-    A.assign(ext_size, diag_off);
-    B.assign(ext_size, diag_mid);
-    C.assign(ext_size, diag_off);
+    // Assign coefficients
+    A.assign(ext_size, diag_off);   // coefficients of u_{i-1}
+    B.assign(ext_size, diag_mid);   // coefficients of u_i
+    C.assign(ext_size, diag_off);   // coefficients of u_{i+1}
 
     std::vector<int> local_indices(ext_size);
     std::iota(local_indices.begin(), local_indices.end(), 0);
