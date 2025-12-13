@@ -168,14 +168,17 @@ void SchwarzSolver::run() {
 
     while (global_err > tol && iter < max_iter) {
 
-       
+         // Save old solution for convergence check and communication     
         local->save_old();
 
+        // Prepare for MPI communication of overlap values
         MPI_Status status;
 
         if (l > 0) {
 
-            
+            // Exchange a vector of lenght L
+            //
+            // Safety: do not send more elements than the core has 
             int L = std::min(l, core_size);
 
             std::vector<double> send_left_vec(L);
@@ -189,6 +192,11 @@ void SchwarzSolver::run() {
             std::vector<double> recv_left_vec(L, ua);
             std::vector<double> recv_right_vec(L, ub);
 
+            // MPI_Sendrecv: simultaneous send and receive (avoids deadlock)
+            //
+            // Send send_right_vec to the right process and receive from left in recv_left_vec
+            // 
+            // Safety: first Sendrecv with tag 0, second Sendrecv with tag 1
             MPI_Sendrecv(send_right_vec.data(), L, MPI_DOUBLE, right, 0,
                          recv_left_vec.data(),  L, MPI_DOUBLE, left,  0,
                          MPI_COMM_WORLD, &status);
@@ -198,10 +206,15 @@ void SchwarzSolver::run() {
                          MPI_COMM_WORLD, &status);
 
            
+            // Select which array values to use at the boundary condition for 
+            // the extended domain:
+            //   - last element of the array from left neighbours
+            //   - first element of the array from right neighbours
             bc_from_left  = recv_left_vec[L-1];
             bc_from_right = recv_right_vec[0];
         }
         else {
+            // for l == 0, send the single conditions (last and first of the core)
             double send_left  = local->old_value_at_global(core_start);
             double send_right = local->old_value_at_global(core_end);
            
@@ -221,16 +234,20 @@ void SchwarzSolver::run() {
             bc_from_right = recv_right;
         }
 
+        // Assemble tridiagonal system for each node
         local->assemble(h);
         local->apply_dirichlet(bc_from_left, bc_from_right);
         local->solve_local();
 
         // ERROR COMPUTATION
         double local_err_sq = local->local_error_sqr();
+         // Combine errors from all processes using MPI_Allreduce (all processes get the result)
         MPI_Allreduce(&local_err_sq, &global_err, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+         // Take square root to get L2 norm
         global_err = std::sqrt(global_err);
 
-        
+
+        // Print progress (only from rank 0, every 20 iterations)
         if(rank == 0 && iter % 20 == 0){
             std::cout << "Iteration " << std::setw(4) << iter
                       << " | Error = " << std::scientific 
@@ -243,6 +260,7 @@ void SchwarzSolver::run() {
     }
 
 
+    // Print convergence result
     if(rank == 0){
         std::cout << "================================================" << std::endl;
         if(global_err <= tol){
@@ -265,4 +283,5 @@ void SchwarzSolver::run() {
 
 // GATHER GLOBAL SOLUTION AND SAVE TO FILE
 void SchwarzSolver::gather_and_save() {
+    
 }
