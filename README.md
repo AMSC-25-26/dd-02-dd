@@ -65,8 +65,8 @@ The same discrete problem is solved using four complementary approaches:
 
 $$
    \begin{aligned}
-   -\mu u''(x) + c u(x) &= f(x), \qquad x \in (0,L), \\
-   u(0) &= 0, \qquad u(L) = 0 .
+   -\mu u''(x) + c u(x) = f(x), \qquad x \in (0,L), \\
+   u(0) = 0, \qquad u(L) = 0 .
    \end{aligned}
 $$
 
@@ -76,7 +76,7 @@ $$
 
 $$
    \begin{aligned}
-   u(x) &= \frac{1}{\mu \pi^2 + c}\,\sin(\pi x) .
+   u(x) &= \frac{1}{\mu \pi^2 + c} \sin(\pi x) .
    \end{aligned}
 $$
 
@@ -91,8 +91,8 @@ $$
    \frac{1}{c}
    \left[
    1 -
-   \frac{\cosh\!\left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
-        {\cosh\!\left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
+   \frac{\cosh \left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
+        {\cosh \left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
    \right] .
    \end{aligned}
 $$
