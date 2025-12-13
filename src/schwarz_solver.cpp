@@ -57,9 +57,13 @@ void LocalProblem::assemble(double h) {
     B.assign(ext_size, diag_mid);   // coefficients of u_i
     C.assign(ext_size, diag_off);   // coefficients of u_{i+1}
 
+    // RHS: evaluate forcing term at node position
+    // Create a vector of local indices
     std::vector<int> local_indices(ext_size);
+    // Fill the vector with a sequence of consecutive integers
     std::iota(local_indices.begin(), local_indices.end(), 0);
 
+    // Apply lambda function to each element of the vector
     std::for_each(
         local_indices.begin(),
         local_indices.end(),
@@ -70,8 +74,7 @@ void LocalProblem::assemble(double h) {
     );
 }
 
-
-
+// APPLY BOUNDARY CONDITIONS
 void LocalProblem::apply_dirichlet(double bc_left, double bc_right) {
     
     // Left boundary: 
