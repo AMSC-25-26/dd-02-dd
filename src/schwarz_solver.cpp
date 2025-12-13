@@ -55,18 +55,24 @@ void LocalProblem::assemble(double h) {
     double diag_off = -mu / (h*h);
     double diag_mid = 2.0 * mu / (h*h) + c;
 
-    for (int i = 0; i < ext_size; ++i) {
-        int gidx = ext_s + i;  // global index of this local node
+    A.assign(ext_size, diag_off);
+    B.assign(ext_size, diag_mid);
+    C.assign(ext_size, diag_off);
 
-        // Assign coefficients
-        A[i] = diag_off;       // coefficient of u_{i-1}
-        B[i] = diag_mid;       // coefficient of u_i
-        C[i] = diag_off;       // coefficient of u_{i+1}
+    std::vector<int> local_indices(ext_size);
+    std::iota(local_indices.begin(), local_indices.end(), 0);
 
-        // Right-hand side: evaluate forcing at node position
-        R[i] = forcing(gidx, h);
-    }
+    std::for_each(
+        local_indices.begin(),
+        local_indices.end(),
+        [this, h, es = ext_s](int i) {
+            int gidx = es + i;
+            this->R[i] = this->forcing(gidx, h);
+        }
+    );
 }
+
+
 
 void LocalProblem::apply_dirichlet(double bc_left, double bc_right) {
     
