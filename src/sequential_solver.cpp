@@ -9,11 +9,11 @@
 // ============== SEQUENTIAL SOLVER =====================
 // ======================================================
 
-SequentialSolver::SequentialSolver(int Nnodes, double mu_, double c_, 
-                                   double ua_, double ub_)
-    : N(Nnodes), mu(mu_), c(c_), ua(ua_), ub(ub_)
+SequentialSolver::SequentialSolver(int Nnodes, double mu_, double c_, double a_,
+                                   double b_, double ua_, double ub_)
+    : N(Nnodes), mu(mu_), c(c_), a(a_), b(b_), ua(ua_), ub(ub_)
 {
-    h = 1.0 / (N - 1);
+    h = (b - a) / (N - 1);
     u.assign(N, 0.0);
     A.assign(N, 0.0);
     B.assign(N, 0.0);
