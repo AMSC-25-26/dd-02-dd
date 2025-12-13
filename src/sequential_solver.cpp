@@ -22,7 +22,7 @@ SequentialSolver::SequentialSolver(int Nnodes, double mu_, double c_, double a_,
 }
 
 double SequentialSolver::forcing(int i) const {
-    double x = a + i * h;  // Position along the domain [0,1]
+    double x = a + i * h;  // Position along the domain [a,b]
     (void)x;               // Suppress unused variable warning
     return 1.0;            // Example: constant forcing term
 }
