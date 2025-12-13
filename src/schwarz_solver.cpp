@@ -154,20 +154,21 @@ SchwarzSolver::~SchwarzSolver() { delete local; }
 
 void SchwarzSolver::run() {
 
+  // Exchange value at core boundary, not extended
   double send_left  = u[core_start - ext_start];
   double send_right = u[core_end   - ext_start];
 
   double recv_left  = ua;
   double recv_right = ub;
 
- 
+ //  First exchange: send to dest = right, receive from the src = left 
   MPI_Sendrecv(
       &send_right, 1, MPI_DOUBLE, right, 0,
       &recv_left,  1, MPI_DOUBLE, left,  0,
       MPI_COMM_WORLD, MPI_STATUS_IGNORE
   );
 
- 
+ // Second exchange: send to left, receive from right
   MPI_Sendrecv(
       &send_left,  1, MPI_DOUBLE, left,  1,
       &recv_right, 1, MPI_DOUBLE, right, 1,
