@@ -154,89 +154,101 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
 SchwarzSolver::~SchwarzSolver() { delete local; }
 
 void SchwarzSolver::run() {
-
-  int Nnodes = Nglob;
+    int Nnodes = Nglob;
     double h = 1.0 / (Nnodes - 1);
 
+    // BOUNDARY CONDITIONS FOR LOCAL PROBLEMS
+    // Will be updated at each Schwarz iteration with values from neighbors
     double bc_from_left  = ua;
     double bc_from_right = ub;
 
-    double global_err = 1e9;
-    int iter = 0;
+    // CONVERGENCE PARAMETERS
+    double global_err = 1e9;  // initial error (as large as possible)
+    int iter = 0;             // iteration counter
 
     while (global_err > tol && iter < max_iter) {
+
+       
         local->save_old();
 
-        
         MPI_Status status;
 
         if (l > 0) {
-            int L = l;
+
+            
+            int L = std::min(l, core_size);
+
             std::vector<double> send_left_vec(L);
             std::vector<double> send_right_vec(L);
 
-                send_left_vec[i]  = local->value_at_global(core_start + i);
-                send_right_vec[i] = local->value_at_global(core_end - L + 1 + i);
+            for (int i = 0; i < L; ++i) {
+                send_left_vec[i]  = local->old_value_at_global(core_start + i);
+                send_right_vec[i] = local->old_value_at_global(core_end - L + 1 + i);
             }
 
             std::vector<double> recv_left_vec(L, ua);
             std::vector<double> recv_right_vec(L, ub);
 
-            
             MPI_Sendrecv(send_right_vec.data(), L, MPI_DOUBLE, right, 0,
-                            recv_left_vec.data(),  L, MPI_DOUBLE, left,  0,
-                            MPI_COMM_WORLD, &status);
+                         recv_left_vec.data(),  L, MPI_DOUBLE, left,  0,
+                         MPI_COMM_WORLD, &status);
 
-            
             MPI_Sendrecv(send_left_vec.data(),  L, MPI_DOUBLE, left,  1,
-                            recv_right_vec.data(), L, MPI_DOUBLE, right, 1,
-                            MPI_COMM_WORLD, &status);
+                         recv_right_vec.data(), L, MPI_DOUBLE, right, 1,
+                         MPI_COMM_WORLD, &status);
 
-            
+           
             bc_from_left  = recv_left_vec[L-1];
             bc_from_right = recv_right_vec[0];
-        } else {
-            
-            double send_left  = local->value_at_global(core_start);
-            double send_right = local->value_at_global(core_end);
-
+        }
+        else {
+            double send_left  = local->old_value_at_global(core_start);
+            double send_right = local->old_value_at_global(core_end);
+           
             double recv_left  = ua;
             double recv_right = ub;
 
             MPI_Sendrecv(&send_right, 1, MPI_DOUBLE, right, 0,
-                            &recv_left,  1, MPI_DOUBLE, left,  0,
-                            MPI_COMM_WORLD, &status);
+                         &recv_left,  1, MPI_DOUBLE, left,  0,
+                         MPI_COMM_WORLD, &status);
 
             MPI_Sendrecv(&send_left,  1, MPI_DOUBLE, left,  1,
-                            &recv_right, 1, MPI_DOUBLE, right, 1,
-                            MPI_COMM_WORLD, &status);
+                         &recv_right, 1, MPI_DOUBLE, right, 1,
+                         MPI_COMM_WORLD, &status);
 
+            // Set to received values
             bc_from_left  = recv_left;
             bc_from_right = recv_right;
         }
 
-        
         local->assemble(h);
         local->apply_dirichlet(bc_from_left, bc_from_right);
         local->solve_local();
-        
 
+        // ERROR COMPUTATION
         double local_err_sq = local->local_error_sqr();
         MPI_Allreduce(&local_err_sq, &global_err, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         global_err = std::sqrt(global_err);
 
-        if (rank == 0 && (iter % 20 == 0 || iter == 0))
-            std::cout << "Iter " << iter << " global_err = " << global_err << std::endl;
+        
+        if(rank == 0 && iter % 20 == 0){
+            std::cout << "Iteration " << std::setw(4) << iter
+                      << " | Error = " << std::scientific 
+                      << std::setprecision(6) << global_err << std::endl;
+        }
 
         if (!std::isfinite(global_err) || global_err > 1e300) break;
 
-        ++iter;
+        iter++;
     }
+
+
+    gather_and_save();
+}
 
 
 
 
 // GATHER GLOBAL SOLUTION AND SAVE TO FILE
 void SchwarzSolver::gather_and_save() {
- 
 }
