@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <execution>
 
 // ======================================================
 // ======= TRIDIAGONAL SOLVER - Thomas algorithm ========
