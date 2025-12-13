@@ -127,6 +127,9 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
       l(overlap_l), mu(mu), c(c), ua(ua), ub(ub),
       max_iter(max_iter), tol(tol)
 {
+  // DOMAIN PARTITIONING
+  // Load balancing: first 'rem' processes get one extra node
+   
   int base = Nglob / size;    // base number of nodes per rank
   int rem = Nglob % size;     // remainder nodes to distribute
 
@@ -137,7 +140,10 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
   // Create local problem
   local = new LocalProblem(Nglob, core_start, core_end, l, mu, c, ua, ub);
 
- 
+  // MPI NEIGHBOR IDENTIFICATION for excanging boundary values
+  // If this process does not have left/right neighbor, set it to
+  // MPI_PROC_NULL (communication with MPI_PROC_NULL is ignored by MPI)
+   
   left  = (rank > 0) ? rank - 1 : MPI_PROC_NULL;
   right = (rank < size - 1) ? rank + 1 : MPI_PROC_NULL;
 
