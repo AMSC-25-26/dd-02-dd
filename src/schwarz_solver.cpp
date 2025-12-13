@@ -155,31 +155,83 @@ SchwarzSolver::~SchwarzSolver() { delete local; }
 
 void SchwarzSolver::run() {
 
-  // Exchange value at core boundary, not extended
-  double send_left  = u[core_start - ext_start];
-  double send_right = u[core_end   - ext_start];
+  int Nnodes = Nglob;
+    double h = 1.0 / (Nnodes - 1);
 
-  double recv_left  = ua;
-  double recv_right = ub;
+    double bc_from_left  = ua;
+    double bc_from_right = ub;
 
- //  First exchange: send to dest = right, receive from the src = left 
-  MPI_Sendrecv(
-      &send_right, 1, MPI_DOUBLE, right, 0,
-      &recv_left,  1, MPI_DOUBLE, left,  0,
-      MPI_COMM_WORLD, MPI_STATUS_IGNORE
-  );
+    double global_err = 1e9;
+    int iter = 0;
 
- // Second exchange: send to left, receive from right
-  MPI_Sendrecv(
-      &send_left,  1, MPI_DOUBLE, left,  1,
-      &recv_right, 1, MPI_DOUBLE, right, 1,
-      MPI_COMM_WORLD, MPI_STATUS_IGNORE
-  );
+    while (global_err > tol && iter < max_iter) {
+        local->save_old();
 
-  bc_left  = recv_left;
-  bc_right = recv_right;
-}
+        
+        MPI_Status status;
 
+        if (l > 0) {
+            int L = l;
+            std::vector<double> send_left_vec(L);
+            std::vector<double> send_right_vec(L);
+
+                send_left_vec[i]  = local->value_at_global(core_start + i);
+                send_right_vec[i] = local->value_at_global(core_end - L + 1 + i);
+            }
+
+            std::vector<double> recv_left_vec(L, ua);
+            std::vector<double> recv_right_vec(L, ub);
+
+            
+            MPI_Sendrecv(send_right_vec.data(), L, MPI_DOUBLE, right, 0,
+                            recv_left_vec.data(),  L, MPI_DOUBLE, left,  0,
+                            MPI_COMM_WORLD, &status);
+
+            
+            MPI_Sendrecv(send_left_vec.data(),  L, MPI_DOUBLE, left,  1,
+                            recv_right_vec.data(), L, MPI_DOUBLE, right, 1,
+                            MPI_COMM_WORLD, &status);
+
+            
+            bc_from_left  = recv_left_vec[L-1];
+            bc_from_right = recv_right_vec[0];
+        } else {
+            
+            double send_left  = local->value_at_global(core_start);
+            double send_right = local->value_at_global(core_end);
+
+            double recv_left  = ua;
+            double recv_right = ub;
+
+            MPI_Sendrecv(&send_right, 1, MPI_DOUBLE, right, 0,
+                            &recv_left,  1, MPI_DOUBLE, left,  0,
+                            MPI_COMM_WORLD, &status);
+
+            MPI_Sendrecv(&send_left,  1, MPI_DOUBLE, left,  1,
+                            &recv_right, 1, MPI_DOUBLE, right, 1,
+                            MPI_COMM_WORLD, &status);
+
+            bc_from_left  = recv_left;
+            bc_from_right = recv_right;
+        }
+
+        
+        local->assemble(h);
+        local->apply_dirichlet(bc_from_left, bc_from_right);
+        local->solve_local();
+        
+
+        double local_err_sq = local->local_error_sqr();
+        MPI_Allreduce(&local_err_sq, &global_err, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        global_err = std::sqrt(global_err);
+
+        if (rank == 0 && (iter % 20 == 0 || iter == 0))
+            std::cout << "Iter " << iter << " global_err = " << global_err << std::endl;
+
+        if (!std::isfinite(global_err) || global_err > 1e300) break;
+
+        ++iter;
+    }
 
 
 
