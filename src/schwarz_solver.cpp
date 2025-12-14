@@ -326,7 +326,16 @@ void SchwarzSolver::gather_and_save() {
         for (int i = 0; i < Nglob; ++i)
             if (counts[i] > 0) u_global[i] /= counts[i];
 
-        
+        // Write x and u in the global solution
+        std::ofstream ofs("solution.csv");
+        ofs << "x,u\n";
+        double h = 1.0/(Nglob-1);
+        for (int i = 0; i < Nglob; ++i)
+            ofs << i*h << "," << u_global[i] << "\n";
+
+        ofs.close();
+        std::cout << "\nSolution saved to 'solution.csv'\n";
+
     }
     else {
        // Other processes send their core to rank 0
@@ -339,5 +348,5 @@ void SchwarzSolver::gather_and_save() {
 
         MPI_Send(buf.data(), ext_len, MPI_DOUBLE, 0, 101, MPI_COMM_WORLD);
     }
-    
+      
 }
