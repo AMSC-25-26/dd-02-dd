@@ -3,6 +3,9 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <iomanip>
+#include <cassert>
 #include <execution>
 
 // ======================================================
@@ -13,7 +16,8 @@
 //   core_start, core_end  =  global indices of local core (non-overlapping region)
 //   overlap_l             =  number of overlapping nodes on each side
 //   mu                    =  diffusion coefficient
-//   c                     =  reaction coefficient, 
+//   c                     =  reaction coefficient
+//   a, b                  =  domain boundaries
 //   ua                    =  Dirichlet BC at global left boundary
 //   ub                    =  Dirichlet BC at global right boundary
 //   h                     =  mesh size
@@ -24,6 +28,7 @@ public:
                  int core_start, int core_end,
                  int overlap_l,
                  double mu_, double c_,
+                 double a_, double b_,
                  double ua_, double ub_);
 
     // Forcing term f(x), right-hand side of the differential equation
@@ -67,6 +72,7 @@ private:
     int ext_size;
     int core_size;
     double mu, c;
+    double a, b;
     double ua, ub;
 
     std::vector<double> u, u_old;
@@ -98,6 +104,7 @@ public:
     SchwarzSolver(int Nnodes_global,
                   int mpi_rank, int mpi_size,
                   int overlap_l, double mu, double c,
+                  double a, double b,
                   double ua, double ub,
                   int max_iter, double tol);
 
@@ -111,6 +118,7 @@ private:
     int rank, size;
     int l;
     double mu, c;
+    double a, b;
     double ua, ub;
     int max_iter;
     double tol;
