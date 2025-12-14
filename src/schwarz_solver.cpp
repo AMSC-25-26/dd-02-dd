@@ -287,19 +287,26 @@ void SchwarzSolver::run() {
 
 // GATHER GLOBAL SOLUTION AND SAVE TO FILE
 void SchwarzSolver::gather_and_save() {
+
+    // takes indices from local extension
     int ext_s = local->ext_start();
+    // int ext_e = local->ext_end();    (not used)
     int ext_len = local->ext_length();
 
+    // rank0: reception of contributions from all processes
     if (rank == 0) {
         std::vector<double> u_global(Nglob, 0.0);
         std::vector<int> counts(Nglob, 0);
 
+        // Rank 0 add his own extended portion to u_global and counts
+        // how many contributes has each nodes
         for (int i = 0; i < ext_len; ++i) {
             int g = ext_s + i;  // global index
             u_global[g] += local->value_at_global(g);
             counts[g]++;
         }
 
+        // Receive info and the buffer value with ext_len (extended value)
         for (int p = 1; p < size; ++p) {
             MPI_Status status;
             int info[2];
@@ -315,14 +322,14 @@ void SchwarzSolver::gather_and_save() {
             }
         }
 
-        
+        // Average of the k contributes
         for (int i = 0; i < Nglob; ++i)
             if (counts[i] > 0) u_global[i] /= counts[i];
 
         
     }
     else {
-       
+       // Other processes send their core to rank 0
         int info[2] = { ext_s, ext_len };
         MPI_Send(info, 2, MPI_INT, 0, 100, MPI_COMM_WORLD);
 
