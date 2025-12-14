@@ -137,7 +137,6 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
 {
   // DOMAIN PARTITIONING
   // Load balancing: first 'rem' processes get one extra node
-   
   int base = Nglob / size;    // base number of nodes per rank
   int rem = Nglob % size;     // remainder nodes to distribute
 
@@ -151,7 +150,6 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
   // MPI NEIGHBOR IDENTIFICATION for excanging boundary values
   // If this process does not have left/right neighbor, set it to
   // MPI_PROC_NULL (communication with MPI_PROC_NULL is ignored by MPI)
-   
   left  = (rank > 0) ? rank - 1 : MPI_PROC_NULL;
   right = (rank < size - 1) ? rank + 1 : MPI_PROC_NULL;
 
@@ -291,18 +289,18 @@ void SchwarzSolver::run() {
 // GATHER GLOBAL SOLUTION AND SAVE TO FILE
 void SchwarzSolver::gather_and_save() {
 
-    // takes indices from local extension
+    // Take indices from local extension
     int ext_s = local->ext_start();
     // int ext_e = local->ext_end();    (not used)
     int ext_len = local->ext_length();
 
-    // rank0: reception of contributions from all processes
+    // Rank 0: reception of contributions from all processes
     if (rank == 0) {
         std::vector<double> u_global(Nglob, 0.0);
         std::vector<int> counts(Nglob, 0);
 
-        // Rank 0 add his own extended portion to u_global and counts
-        // how many contributes has each nodes
+        // Rank 0 adds its own extended portion to u_global and counts
+        // how many contributes each node has
         for (int i = 0; i < ext_len; ++i) {
             int g = ext_s + i;  // global index
             u_global[g] += local->value_at_global(g);
@@ -331,7 +329,7 @@ void SchwarzSolver::gather_and_save() {
 
         // Write x and u in the global solution
         std::ofstream ofs("solution.csv");
-        ofs << "x,u\n";
+        ofs << "x,u_p\n";
         double h = 1.0/(Nglob-1);
         for (int i = 0; i < Nglob; ++i)
             ofs << i*h << "," << u_global[i] << "\n";
