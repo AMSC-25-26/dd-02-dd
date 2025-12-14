@@ -330,9 +330,9 @@ void SchwarzSolver::gather_and_save() {
         // Write x and u in the global solution
         std::ofstream ofs("solution.csv");
         ofs << "x,u_p\n";
-        double h = 1.0/(Nglob-1);
+        double h = (b-a)/(Nglob-1);
         for (int i = 0; i < Nglob; ++i)
-            ofs << i*h << "," << u_global[i] << "\n";
+            ofs << a + i*h << "," << u_global[i] << "\n";
 
         ofs.close();
         std::cout << "\nSolution saved to 'solution.csv'\n";
