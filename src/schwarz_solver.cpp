@@ -287,5 +287,50 @@ void SchwarzSolver::run() {
 
 // GATHER GLOBAL SOLUTION AND SAVE TO FILE
 void SchwarzSolver::gather_and_save() {
+    int ext_s = local->ext_start();
+    int ext_len = local->ext_length();
+
+    if (rank == 0) {
+        std::vector<double> u_global(Nglob, 0.0);
+        std::vector<int> counts(Nglob, 0);
+
+        for (int i = 0; i < ext_len; ++i) {
+            int g = ext_s + i;  // global index
+            u_global[g] += local->value_at_global(g);
+            counts[g]++;
+        }
+
+        for (int p = 1; p < size; ++p) {
+            MPI_Status status;
+            int info[2];
+            MPI_Recv(info, 2, MPI_INT, p, 100, MPI_COMM_WORLD, &status);
+            int rs = info[0], rl = info[1];
+            std::vector<double> buf(rl);
+            MPI_Recv(buf.data(), rl, MPI_DOUBLE, p, 101, MPI_COMM_WORLD, &status);
+
+            for (int i = 0; i < rl; ++i) {
+                int g = rs + i;
+                u_global[g] += buf[i];
+                counts[g]++;
+            }
+        }
+
+        
+        for (int i = 0; i < Nglob; ++i)
+            if (counts[i] > 0) u_global[i] /= counts[i];
+
+        
+    }
+    else {
+       
+        int info[2] = { ext_s, ext_len };
+        MPI_Send(info, 2, MPI_INT, 0, 100, MPI_COMM_WORLD);
+
+        std::vector<double> buf(ext_len);
+        for (int i = 0; i < ext_len; ++i)
+            buf[i] = local->value_at_global(ext_s + i);
+
+        MPI_Send(buf.data(), ext_len, MPI_DOUBLE, 0, 101, MPI_COMM_WORLD);
+    }
     
 }
