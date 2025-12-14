@@ -1,5 +1,7 @@
 #include "schwarz_solver.hpp"
 #include "thomas.hpp"
+#include <numeric>
+#include <algorithm>
 
 // ======================================================
 // ==================== LOCAL PROBLEM ===================
@@ -9,10 +11,11 @@ LocalProblem::LocalProblem(int Nnodes_global,
                            int core_start, int core_end,
                            int overlap_l,
                            double mu_, double c_,
+                           double a_, double b_,
                            double ua_, double ub_)
     : Nglob(Nnodes_global),
       core_s(core_start), core_e(core_end),
-      l(overlap_l), mu(mu_), c(c_),
+      l(overlap_l), mu(mu_), c(c_), a(a_), b(b_),
       ua(ua_), ub(ub_)
 {
   // Extend core: every local subproblem needs l extra neighbor nodes
@@ -122,10 +125,11 @@ double LocalProblem::value_at_global(int gidx) const {
 SchwarzSolver::SchwarzSolver(int Nnodes_global,
                              int mpi_rank, int mpi_size,
                              int overlap_l, double mu, double c,
+                             double a, double b,
                              double ua, double ub,
                              int max_iter, double tol)
     : Nglob(Nnodes_global), rank(mpi_rank), size(mpi_size),
-      l(overlap_l), mu(mu), c(c), ua(ua), ub(ub),
+      l(overlap_l), mu(mu), c(c), a(a), b(b), ua(ua), ub(ub),
       max_iter(max_iter), tol(tol)
 {
   // DOMAIN PARTITIONING
@@ -139,7 +143,7 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
   core_end   = core_start + core_size - 1;         // ending global index of this process' core (inclusive)
 
   // Create local problem
-  local = new LocalProblem(Nglob, core_start, core_end, l, mu, c, ua, ub);
+  local = new LocalProblem(Nglob, core_start, core_end, l, mu, c, a, b, ua, ub);
 
   // MPI NEIGHBOR IDENTIFICATION for excanging boundary values
   // If this process does not have left/right neighbor, set it to
@@ -155,7 +159,7 @@ SchwarzSolver::~SchwarzSolver() { delete local; }
 
 void SchwarzSolver::run() {
     int Nnodes = Nglob;
-    double h = 1.0 / (Nnodes - 1);
+    double h = (b - a) / (Nnodes - 1);
 
     // BOUNDARY CONDITIONS FOR LOCAL PROBLEMS
     // Will be updated at each Schwarz iteration with values from neighbors
