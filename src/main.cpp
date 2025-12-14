@@ -1,6 +1,20 @@
 #include "schwarz_solver.hpp"
 #include "sequential_solver.hpp"
 
+// Function to compute relative L2 error between the two solutions
+double compute_relative_error(const std::vector<double>& u1, 
+                              const std::vector<double>& u2) {
+    if (u1.size() != u2.size()) return -1.0;
+    
+    double num = 0.0, den = 0.0;
+    for (size_t i = 0; i < u1.size(); ++i) {
+        double diff = u1[i] - u2[i];
+        num += diff * diff;
+        den += u2[i] * u2[i];
+    }
+    return std::sqrt(num / den);
+}
+
 int main(int argc, char** argv) {
 
     // Default parameters
@@ -42,7 +56,7 @@ int main(int argc, char** argv) {
     
     if (run_sequential && rank == 0) {
         std::cout << "\n###############################################" << std::endl;
-        std::cout << "  RUNNING SEQUENTIAL SOLVER" << std::endl;
+        std::cout << "  RUNNING SEQUENTIAL SOLVER  " << std::endl;
         std::cout << "###############################################" << std::endl;
         
         SequentialSolver seq_solver(Nnodes, mu_in, c_in, a, b, ua, ub);
@@ -78,7 +92,30 @@ int main(int argc, char** argv) {
     solver.run();
 
     // ===== COMPARISON (only on Rank 0) =====
-    
+    if (rank == 0) {
+        std::cout << "\n###############################################" << std::endl;
+        std::cout << "  PERFORMANCE COMPARISON  " << std::endl;
+        std::cout << "###############################################" << std::endl;
+        
+        if (run_sequential) {
+            std::vector<double> u_parallel(Nnodes);
+            std::ifstream parallel_file("parallel_solution.csv");
+            std::string header;
+            std::getline(parallel_file, header);
+            
+            for (int i = 0; i < Nnodes; ++i) {
+                double x, u_p;
+                char comma;
+                parallel_file >> x >> comma >> u_p;
+                u_parallel[i] = u_p;
+            }
+            parallel_file.close();
+            
+            double rel_error = compute_relative_error(u_parallel, u_sequential);
+            std::cout << "Relative L2 error:         " << std::scientific 
+                      << std::setprecision(6) << rel_error << std::endl;
+        }
+    }
 
     MPI_Finalize();
     return 0;
