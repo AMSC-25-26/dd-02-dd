@@ -110,6 +110,9 @@ void LocalProblem::solve_local() {
     u = apsc::thomasSolve(B, A, C, R);
 }
 
+// Now u contains the solution on the extended domain [ext_s, ext_e]
+
+// Get internal value u[i] at global index gidx
 double LocalProblem::value_at_global(int gidx) const {
     if (gidx < ext_s || gidx > ext_e) return 0.0;
     return u[gidx - ext_s];
