@@ -216,8 +216,8 @@ int main(int argc, char** argv) {
         std::cout << "\n================================================" << std::endl;
         std::cout << "  SCHWARZ METHOD CONFIGURATION\n";
         std::cout << "================================================" << std::endl;
-        std::cout << "Diffusion coefficient:     " << mu_in << std::endl;
-        std::cout << "Reaction coefficient:      " << c_in << std::endl;
+        std::cout << "Diffusion coefficient:     " << mu << std::endl;
+        std::cout << "Reaction coefficient:      " << c << std::endl;
         std::cout << "Global nodes:              " << Nnodes << std::endl;
         std::cout << "Mesh size h:               " << (b - a) / (Nnodes - 1) << std::endl;
         std::cout << "MPI processes:             " << size << std::endl;
@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
         std::cout << "================================================" << std::endl;
     }
 
-    SchwarzSolver solver(Nnodes, rank, size, overlap_l, mu_in, c_in, 
+    SchwarzSolver solver(Nnodes, rank, size, overlap_l, mu, c, 
                          a, b, ua, ub, max_it, tol, forcing);
     solver.run();
 
