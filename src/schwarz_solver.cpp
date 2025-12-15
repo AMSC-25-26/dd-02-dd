@@ -112,16 +112,19 @@ void LocalProblem::solve_local() {
 
 // Now u contains the solution on the extended domain [ext_s, ext_e]
 
+// Get internal value u[i] at global index gidx
 double LocalProblem::value_at_global(int gidx) const {
     if (gidx < ext_s || gidx > ext_e) return 0.0;
     return u[gidx - ext_s];
 }
 
+// Get old internal value u_old[i] at global index gidx
 double LocalProblem::old_value_at_global(int gidx) const {
     if (gidx < ext_s || gidx > ext_e) return 0.0;
     return u_old[gidx - ext_s];
 }
 
+// Get core values (non-overlapping region)
 std::vector<double> LocalProblem::get_core_values() const {
     std::vector<double> core(core_size);
     for (int i = 0; i < core_size; ++i) {
@@ -130,6 +133,27 @@ std::vector<double> LocalProblem::get_core_values() const {
     }
     return core;
 }
+
+// ERROR COMPUTATION
+// Compute local squared error between current and old solution
+double LocalProblem::local_error_sqr() const {
+    double s = 0.0;
+    for (int i = 0; i < ext_size; ++i) {
+        double d = u[i] - u_old[i];
+        s += d*d;
+    }
+    return s;
+}
+
+// Update old solution
+void LocalProblem::save_old() { u_old = u; }
+
+int LocalProblem::ext_start() const { return ext_s; }
+int LocalProblem::ext_end()   const { return ext_e; }
+int LocalProblem::ext_length() const { return ext_size; }
+int LocalProblem::core_start() const { return core_s; }
+int LocalProblem::core_end()   const { return core_e; }
+int LocalProblem::core_length() const { return core_size; }
 
 
 // ======================================================
