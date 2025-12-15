@@ -1,5 +1,4 @@
 #include "sequential_solver.hpp"
-#include "schwarz_solver.hpp"
 #include "thomas.hpp"
 #include <iostream>
 #include <fstream>
