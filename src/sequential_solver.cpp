@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <numeric>
+#include <algorithm>
 
 // ======================================================
 // ============== SEQUENTIAL SOLVER =====================
