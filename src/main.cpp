@@ -56,10 +56,13 @@ template <typename T>
 void ask_param(const std::string& msg, T& value) {
     std::cout << msg << " [" << value << "]: ";
     std::string line;
-    std::getline(std::cin, line);
+    std::getline(std::cin, line);  // to read a line of text from input stream 
 
-    if (line.empty() || line == "." || line == "-") return;
+    // Default
+    if (line.empty() || line == "." || line == "-") return; 
 
+    // Convert the user’s input string into a number of type T using a stringstream, 
+    // and only update the variable if the conversion succeeded
     std::stringstream ss(line);
     T tmp;
     if (ss >> tmp)
