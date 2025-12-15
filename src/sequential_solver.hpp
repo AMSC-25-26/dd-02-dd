@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 
 // ======================================================
 // ============== SEQUENTIAL SOLVER =====================
@@ -14,7 +15,8 @@
 class SequentialSolver {
 public:
     SequentialSolver(int Nnodes, double mu, double c, double a, 
-                     double b, double ua, double ub);
+                     double b, double ua, double ub, 
+                     std::function<double(double)> forcing_func);
     
     void solve();
     void save_solution(const std::string& filename = "sequential_solution.csv");
@@ -32,7 +34,9 @@ private:
     std::vector<double> u;           // solution vector
     std::vector<double> A, B, C, R;  // tridiagonal system vectors
     
-    double forcing(int i) const;
+    // Store forcing function as member
+    std::function<double(double)> forcing;
+
     void assemble();
     void apply_boundary_conditions();
 };
