@@ -1,6 +1,7 @@
 #include "schwarz_solver.hpp"
 #include "sequential_solver.hpp"
 #include <cmath>
+#include <sstream>
 
 // ======================================================================
 // FORCING FUNCTIONS - Define different source terms
@@ -12,9 +13,9 @@ double forcing_constant(double x) {
     return 1.0;
 }
 
-// 2. Sinusoidal forcing: f(x) = 1 + sin(2πx)
+// 2. Sinusoidal forcing: f(x) = sin(2πx)
 double forcing_sin(double x) {
-    return 1.0 + std::sin(2.0 * M_PI * x);
+    return std::sin(2.0 * M_PI * x);
 }
 
 // 3. Parabolic forcing: f(x) = x(1-x)
@@ -46,20 +47,48 @@ double forcing_exponential(double x) {
 
 
 // ======================================================================
-// HELPER FUNCTION: Get forcing function name
+// INPUT UTILITIES
 // ======================================================================
 
-std::string get_forcing_name(int type) {
-    switch(type) {
-        case 1:  return "Constant (f=1)";
-        case 2:  return "Sinusoidal (f=1+sin(2πx))";
-        case 3:  return "Parabolic (f=x(1-x))";
-        case 4:  return "Gaussian (f=exp(-50(x-0.5)²))";
-        case 5:  return "Piecewise";
-        case 6:  return "Polynomial (f=x²-x³)";
-        case 7:  return "Exponential (f=exp(x))";
-        default: return "Unknown";
+// Use of template: "this function uses a generic type T which will only be
+//                   chosen when the function is called".
+template <typename T>
+void ask_param(const std::string& msg, T& value) {
+    std::cout << msg << " [" << value << "]: ";
+    std::string line;
+    std::getline(std::cin, line);
+
+    if (line.empty() || line == "." || line == "-") return;
+
+    std::stringstream ss(line);
+    T tmp;
+    if (ss >> tmp)
+        value = tmp;
+}
+
+int ask_forcing(int def) {
+    std::cout << "\nChoose forcing function:\n"
+              << "  1) Constant        f(x)=1\n"
+              << "  2) Sinusoidal      f(x)=sin(2πx)\n"
+              << "  3) Parabolic       f(x)=x(1-x)\n"
+              << "  4) Gaussian        f(x)=exp(-50(x-0.5)^2)\n"
+              << "  5) Piecewise\n"
+              << "  6) Polynomial      f(x)=x^2-x^3\n"
+              << "  7) Exponential     f(x)=exp(x)\n"
+              << "Selection [" << def << "]: ";
+
+    std::string line;
+    std::getline(std::cin, line);
+
+    if (line.empty() || line == "." || line == "-")
+        return def;
+
+    int v = std::stoi(line);
+    if (v < 1 || v > 7) {
+        std::cout << "Invalid choice, using default\n";
+        return def;
     }
+    return v;
 }
 
 
@@ -90,8 +119,8 @@ int main(int argc, char** argv) {
     // Default parameters
     int Nnodes = 200;            // total number of nodes in the 1D grid
     int overlap_l = 4;           // number of shared nodes between domains
-    double mu_in = 0.01;         // diffusion coefficient
-    double c_in = 5.0;           // reaction coefficient
+    double mu = 0.01;            // diffusion coefficient
+    double c = 5.0;              // reaction coefficient
     double a = 0.0;              // left boundary of the domain
     double b = 1.0;              // right boundary of the domain
     double ua = 0.0;             // left Dirichlet BC
@@ -102,53 +131,6 @@ int main(int argc, char** argv) {
     
     bool run_sequential = true;  // flag to run sequential solver for comparison
 
-    // Take input values if user passes them as arguments
-    if (argc >= 2) Nnodes = std::stoi(argv[1]);
-    if (argc >= 3) overlap_l = std::stoi(argv[2]);
-    if (argc >= 4) mu_in = std::stod(argv[3]);
-    if (argc >= 5) c_in = std::stod(argv[4]);
-    if (argc >= 6) a = std::stoi(argv[5]);
-    if (argc >= 7) b = std::stoi(argv[6]);
-    if (argc >= 8) ua = std::stoi(argv[7]);
-    if (argc >= 9) ub = std::stoi(argv[8]);
-    if (argc >= 10) max_it = std::stoi(argv[9]);
-    if (argc >= 11) tol = std::stod(argv[10]);
-    if (argc >= 12) run_sequential = (std::stoi(argv[11]) != 0);
-    if (argc >= 13) forcing_type = std::stoi(argv[12]);
-
-    // Select forcing function based on type
-    std::function<double(double)> forcing_func;
-
-    switch (forcing_type) {
-        case 1:
-            forcing_func = forcing_constant;
-            break;
-        case 2:
-            forcing_func = forcing_sin;
-            break;
-        case 3:
-            forcing_func = forcing_parabolic;
-            break;
-        case 4:
-            forcing_func = forcing_gaussian;
-            break;
-        case 5:
-            forcing_func = forcing_piecewise;
-            break;
-        case 6:
-            forcing_func = forcing_polynomial;
-            break;
-        case 7:
-            forcing_func = forcing_exponential;
-            break;
-        default:
-            std::cerr << "Invalid forcing type " << forcing_type 
-                      << ", using constant forcing" << std::endl;
-            forcing_func = forcing_constant;
-            forcing_type = 1;
-            break;
-    }
-
     // Initialize MPI
     MPI_Init(&argc, &argv);
 
@@ -156,16 +138,65 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    // ===== INTERACTIVE PARAMETER INPUT (only on Rank 0) =====
+    if (rank == 0) {
+        std::cout << "\n Press ENTER, '.' or '-' to keep default values (shown in brackets)\n\n";
+
+        ask_param("Number of grid nodes:", Nnodes);
+        ask_param("Overlap size (in number of nodes):", overlap_l);
+        ask_param("Diffusion coefficient mu:", mu);
+        ask_param("Reaction coefficient c:", c);
+        ask_param("Left domain boundary a:", a);
+        ask_param("Right domain boundary b:", b);
+        ask_param("Dirichlet left BC ua:", ua);
+        ask_param("Dirichlet right BC ub:", ub);
+        ask_param("Maximum number of iterations:", max_it);
+        ask_param("Tolerance:", tol);
+
+        int run_sequential_int = run_sequential ? 1 : 0;
+        ask_param("Run sequential solver? (1=yes, 0=no)", run_sequential_int);
+        run_sequential = (run_sequential_int != 0);
+
+        forcing_type = ask_forcing(forcing_type);
+    }
+
+    // BROADCAST parameters to all ranks
+    // Send the user-defined or default values from rank 0 to all other MPI processes
+    MPI_Bcast(&Nnodes,            1, MPI_INT,    0, MPI_COMM_WORLD);
+    MPI_Bcast(&overlap_l,         1, MPI_INT,    0, MPI_COMM_WORLD);
+    MPI_Bcast(&mu,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&c,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&a,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&b,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&ua,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&ub,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&max_it,            1, MPI_INT,    0, MPI_COMM_WORLD);
+    MPI_Bcast(&tol,               1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&forcing_type,      1, MPI_INT,    0, MPI_COMM_WORLD);
+    MPI_Bcast(&run_sequential,    1, MPI_CXX_BOOL,0, MPI_COMM_WORLD);
+
+    // Forcing function selection
+    std::function<double(double)> forcing;
+
+    switch (forcing_type) {
+        case 2: forcing  = forcing_sin;         break;
+        case 3: forcing  = forcing_parabolic;   break;
+        case 4: forcing  = forcing_gaussian;    break;
+        case 5: forcing  = forcing_piecewise;   break;
+        case 6: forcing  = forcing_polynomial;  break;
+        case 7: forcing  = forcing_exponential; break;
+        default: forcing = forcing_constant;    break;
+    }
+    
     // ===== SEQUENTAL VERSION (only on Rank 0) =====
     std::vector<double> u_sequential;
     
     if (run_sequential && rank == 0) {
-        std::cout << "\nForcing function: " << get_forcing_name(forcing_type) << std::endl;
         std::cout << "\n###############################################" << std::endl;
         std::cout << "  RUNNING SEQUENTIAL SOLVER  " << std::endl;
         std::cout << "###############################################" << std::endl;
         
-        SequentialSolver seq_solver(Nnodes, mu_in, c_in, a, b, ua, ub, forcing_func);
+        SequentialSolver seq_solver(Nnodes, mu, c, a, b, ua, ub, forcing);
         seq_solver.solve();
         seq_solver.save_solution("sequential_solution.csv");
         u_sequential = seq_solver.get_solution();
@@ -194,7 +225,7 @@ int main(int argc, char** argv) {
     }
 
     SchwarzSolver solver(Nnodes, rank, size, overlap_l, mu_in, c_in, 
-                         a, b, ua, ub, max_it, tol, forcing_func);
+                         a, b, ua, ub, max_it, tol, forcing);
     solver.run();
 
     // ===== COMPARISON (only on Rank 0) =====
