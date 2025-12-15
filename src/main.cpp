@@ -1,7 +1,72 @@
 #include "schwarz_solver.hpp"
 #include "sequential_solver.hpp"
+#include <cmath>
 
-// Function to compute relative L2 error between the two solutions
+// ======================================================================
+// FORCING FUNCTIONS - Define different source terms
+// ======================================================================
+
+// 1. Constant forcing: f(x) = 1
+double forcing_constant(double x) {
+    (void)x;  // Suppress unused warning
+    return 1.0;
+}
+
+// 2. Sinusoidal forcing: f(x) = 1 + sin(2πx)
+double forcing_sin(double x) {
+    return 1.0 + std::sin(2.0 * M_PI * x);
+}
+
+// 3. Parabolic forcing: f(x) = x(1-x)
+double forcing_parabolic(double x) {
+    return x * (1.0 - x);
+}
+
+// 4. Gaussian forcing: f(x) = exp(-50(x-0.5)²)
+double forcing_gaussian(double x) {
+    return std::exp(-50.0 * (x - 0.5) * (x - 0.5));
+}
+
+// 5. Piecewise forcing
+double forcing_piecewise(double x) {
+    if (x < 0.3) return 0.5;
+    if (x < 0.7) return 2.0;
+    return 0.5;
+}
+
+// 6. Polynomial forcing: f(x) = x² - x³
+double forcing_polynomial(double x) {
+    return x*x - x*x*x;
+}
+
+// 7. Exponential forcing: f(x) = exp(x)
+double forcing_exponential(double x) {
+    return std::exp(x);
+}
+
+
+// ======================================================================
+// HELPER FUNCTION: Get forcing function name
+// ======================================================================
+
+std::string get_forcing_name(int type) {
+    switch(type) {
+        case 1:  return "Constant (f=1)";
+        case 2:  return "Sinusoidal (f=1+sin(2πx))";
+        case 3:  return "Parabolic (f=x(1-x))";
+        case 4:  return "Gaussian (f=exp(-50(x-0.5)²))";
+        case 5:  return "Piecewise";
+        case 6:  return "Polynomial (f=x²-x³)";
+        case 7:  return "Exponential (f=exp(x))";
+        default: return "Unknown";
+    }
+}
+
+
+// ======================================================================
+// RELATIVE L2 ERROR COMPUTATION between two solution vectors
+// ======================================================================
+
 double compute_relative_error(const std::vector<double>& u1, 
                               const std::vector<double>& u2) {
     if (u1.size() != u2.size()) return -1.0;
@@ -14,6 +79,11 @@ double compute_relative_error(const std::vector<double>& u1,
     }
     return std::sqrt(num / den);
 }
+
+
+// ======================================================================
+// MAIN PROGRAM
+// ======================================================================
 
 int main(int argc, char** argv) {
 
@@ -28,6 +98,7 @@ int main(int argc, char** argv) {
     double ub = 0.0;             // right Dirichlet BC
     int max_it = 2000;           // maximum number of iterations
     double tol = 1e-6;           // convergence threshold
+    int forcing_type = 1;        // forcing type selection
     
     bool run_sequential = true;  // flag to run sequential solver for comparison
 
@@ -43,6 +114,40 @@ int main(int argc, char** argv) {
     if (argc >= 10) max_it = std::stoi(argv[9]);
     if (argc >= 11) tol = std::stod(argv[10]);
     if (argc >= 12) run_sequential = (std::stoi(argv[11]) != 0);
+    if (argc >= 13) forcing_type = std::stoi(argv[12]);
+
+    // Select forcing function based on type
+    std::function<double(double)> forcing_func;
+
+    switch (forcing_type) {
+        case 1:
+            forcing_func = forcing_constant;
+            break;
+        case 2:
+            forcing_func = forcing_sin;
+            break;
+        case 3:
+            forcing_func = forcing_parabolic;
+            break;
+        case 4:
+            forcing_func = forcing_gaussian;
+            break;
+        case 5:
+            forcing_func = forcing_piecewise;
+            break;
+        case 6:
+            forcing_func = forcing_polynomial;
+            break;
+        case 7:
+            forcing_func = forcing_exponential;
+            break;
+        default:
+            std::cerr << "Invalid forcing type " << forcing_type 
+                      << ", using constant forcing" << std::endl;
+            forcing_func = forcing_constant;
+            forcing_type = 1;
+            break;
+    }
 
     // Initialize MPI
     MPI_Init(&argc, &argv);
@@ -55,11 +160,12 @@ int main(int argc, char** argv) {
     std::vector<double> u_sequential;
     
     if (run_sequential && rank == 0) {
+        std::cout << "\nForcing function: " << get_forcing_name(forcing_type) << std::endl;
         std::cout << "\n###############################################" << std::endl;
         std::cout << "  RUNNING SEQUENTIAL SOLVER  " << std::endl;
         std::cout << "###############################################" << std::endl;
         
-        SequentialSolver seq_solver(Nnodes, mu_in, c_in, a, b, ua, ub);
+        SequentialSolver seq_solver(Nnodes, mu_in, c_in, a, b, ua, ub, forcing_func);
         seq_solver.solve();
         seq_solver.save_solution("sequential_solution.csv");
         u_sequential = seq_solver.get_solution();
@@ -88,7 +194,7 @@ int main(int argc, char** argv) {
     }
 
     SchwarzSolver solver(Nnodes, rank, size, overlap_l, mu_in, c_in, 
-                         a, b, ua, ub, max_it, tol);
+                         a, b, ua, ub, max_it, tol, forcing_func);
     solver.run();
 
     // ===== COMPARISON (only on Rank 0) =====
