@@ -112,13 +112,24 @@ void LocalProblem::solve_local() {
 
 // Now u contains the solution on the extended domain [ext_s, ext_e]
 
-// Get internal value u[i] at global index gidx
 double LocalProblem::value_at_global(int gidx) const {
     if (gidx < ext_s || gidx > ext_e) return 0.0;
     return u[gidx - ext_s];
 }
 
+double LocalProblem::old_value_at_global(int gidx) const {
+    if (gidx < ext_s || gidx > ext_e) return 0.0;
+    return u_old[gidx - ext_s];
+}
 
+std::vector<double> LocalProblem::get_core_values() const {
+    std::vector<double> core(core_size);
+    for (int i = 0; i < core_size; ++i) {
+        int g = core_s + i;
+        core[i] = u[g - ext_s];
+    }
+    return core;
+}
 
 
 // ======================================================
