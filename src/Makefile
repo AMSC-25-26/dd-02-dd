@@ -1,9 +1,9 @@
 # ======================================================
-# Makefile - MPI Schwarz Solver with Sequential Comparison
+# Makefile - MPI Schwarz Solver
 # ======================================================
 
 CXX      := mpicxx
-CXXFLAGS := -O2 -std=c++20 -Wall -Wextra -pedantic
+CXXFLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic
 LDFLAGS  :=
 TARGET   := schwarz_mpi
 
@@ -12,6 +12,7 @@ OBJS := $(SRCS:.cpp=.o)
 
 # =========================
 # DEFAULT RUN PARAMETERS
+# (used ONLY in run_args)
 # =========================
 NNODES      ?= 200
 OVERLAP     ?= 4
@@ -30,7 +31,7 @@ NPROC       ?= 4
 ARGS := $(NNODES) $(OVERLAP) $(MU) $(C) $(A) $(B) \
         $(UA) $(UB) $(MAX_IT) $(TOL) $(RUN_SEQ) $(FORCING)
 
-.PHONY: all clean run run_seq help
+.PHONY: all clean run run_args run_seq help
 
 # =========================
 # BUILD
@@ -46,11 +47,20 @@ $(TARGET): $(OBJS)
 # =========================
 # RUN TARGETS
 # =========================
+
+# ---- INTERACTIVE RUN ----
+# No command-line arguments -> terminal input is used
 run: $(TARGET)
+	mpirun -np $(NPROC) ./$(TARGET)
+
+# ---- BATCH RUN WITH ARGS ----
+# Parameters passed from Makefile variables
+run_args: $(TARGET)
 	mpirun -np $(NPROC) ./$(TARGET) $(ARGS)
 
+# ---- SEQUENTIAL ONLY ----
 run_seq: $(TARGET)
-	mpirun -np 1 ./$(TARGET) $(ARGS)
+	mpirun -np 1 ./$(TARGET)
 
 # =========================
 # CLEAN
@@ -62,8 +72,12 @@ clean:
 # HELP
 # =========================
 help:
-	@echo "Usage examples:"
+	@echo "Targets:"
+	@echo "  make run                 -> interactive input"
+	@echo "  make run_args            -> run with Makefile parameters"
+	@echo "  make run_seq             -> sequential interactive run"
+	@echo ""
+	@echo "Examples:"
 	@echo "  make run"
+	@echo "  make run_args NNODES=500 MU=0.05 FORCING=4"
 	@echo "  make run NPROC=8"
-	@echo "  make run FORCING=4"
-	@echo "  make run NNODES=500 OVERLAP=6 MU=0.05"
