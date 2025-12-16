@@ -134,6 +134,19 @@ int main(int argc, char** argv) {
     
     bool run_sequential = true;  // flag to run sequential solver for comparison
 
+    if (argc >= 2) Nnodes = std::stoi(argv[1]);
+    if (argc >= 3) overlap_l = std::stoi(argv[2]);
+    if (argc >= 4) mu = std::stod(argv[3]);
+    if (argc >= 5) c = std::stod(argv[4]);
+    if (argc >= 6) a = std::stod(argv[5]);
+    if (argc >= 7) b = std::stod(argv[6]);
+    if (argc >= 8) ua = std::stod(argv[7]);
+    if (argc >= 9) ub = std::stod(argv[8]);
+    if (argc >= 10) max_it = std::stoi(argv[9]);
+    if (argc >= 11) tol = std::stod(argv[10]);
+    if (argc >= 12) forcing_type = std::stoi(argv[11]);
+    if (argc >= 13) run_sequential = (std::stoi(argv[12]) != 0);
+
     // Initialize MPI
     MPI_Init(&argc, &argv);
 
@@ -141,42 +154,44 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    // ===== INTERACTIVE PARAMETER INPUT (only on Rank 0) =====
-    if (rank == 0) {
-        std::cout << "\n Press ENTER, '.' or '-' to keep default values (shown in brackets)\n\n";
-
-        ask_param("Number of grid nodes", Nnodes);
-        ask_param("Overlap size (in number of nodes)", overlap_l);
-        ask_param("Diffusion coefficient mu", mu);
-        ask_param("Reaction coefficient c", c);
-        ask_param("Left domain boundary a", a);
-        ask_param("Right domain boundary b", b);
-        ask_param("Dirichlet left BC ua", ua);
-        ask_param("Dirichlet right BC ub", ub);
-        ask_param("Maximum number of iterations", max_it);
-        ask_param("Tolerance", tol);
-
-        int run_sequential_int = run_sequential ? 1 : 0;
-        ask_param("Run sequential solver? (1=yes, 0=no)", run_sequential_int);
-        run_sequential = (run_sequential_int != 0);
-
-        forcing_type = ask_forcing(forcing_type);
+    if (argc < 2) {
+        // ===== INTERACTIVE PARAMETER INPUT (only on Rank 0) =====
+        if (rank == 0) {
+            std::cout << "\n Press ENTER, '.' or '-' to keep default values (shown in brackets)\n\n";
+    
+            ask_param("Number of grid nodes", Nnodes);
+            ask_param("Overlap size (in number of nodes)", overlap_l);
+            ask_param("Diffusion coefficient mu", mu);
+            ask_param("Reaction coefficient c", c);
+            ask_param("Left domain boundary a", a);
+            ask_param("Right domain boundary b", b);
+            ask_param("Dirichlet left BC ua", ua);
+            ask_param("Dirichlet right BC ub", ub);
+            ask_param("Maximum number of iterations", max_it);
+            ask_param("Tolerance", tol);
+    
+            int run_sequential_int = run_sequential ? 1 : 0;
+            ask_param("Run sequential solver? (1=yes, 0=no)", run_sequential_int);
+            run_sequential = (run_sequential_int != 0);
+    
+            forcing_type = ask_forcing(forcing_type);
+        }
+    
+        // BROADCAST parameters to all ranks
+        // Send the user-defined or default values from rank 0 to all other MPI processes
+        MPI_Bcast(&Nnodes,            1, MPI_INT,    0, MPI_COMM_WORLD);
+        MPI_Bcast(&overlap_l,         1, MPI_INT,    0, MPI_COMM_WORLD);
+        MPI_Bcast(&mu,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&c,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&a,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&b,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&ua,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&ub,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&max_it,            1, MPI_INT,    0, MPI_COMM_WORLD);
+        MPI_Bcast(&tol,               1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&forcing_type,      1, MPI_INT,    0, MPI_COMM_WORLD);
+        MPI_Bcast(&run_sequential,    1, MPI_CXX_BOOL,0, MPI_COMM_WORLD);
     }
-
-    // BROADCAST parameters to all ranks
-    // Send the user-defined or default values from rank 0 to all other MPI processes
-    MPI_Bcast(&Nnodes,            1, MPI_INT,    0, MPI_COMM_WORLD);
-    MPI_Bcast(&overlap_l,         1, MPI_INT,    0, MPI_COMM_WORLD);
-    MPI_Bcast(&mu,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&c,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&a,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&b,                 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&ua,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&ub,                1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&max_it,            1, MPI_INT,    0, MPI_COMM_WORLD);
-    MPI_Bcast(&tol,               1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&forcing_type,      1, MPI_INT,    0, MPI_COMM_WORLD);
-    MPI_Bcast(&run_sequential,    1, MPI_CXX_BOOL,0, MPI_COMM_WORLD);
 
     // Forcing function selection
     std::function<double(double)> forcing;
