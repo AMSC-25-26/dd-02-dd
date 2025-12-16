@@ -1,9 +1,10 @@
 #include "sequential_solver.hpp"
-#include "schwarz_solver.hpp"
 #include "thomas.hpp"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <numeric>
+#include <algorithm>
 
 // ======================================================
 // ============== SEQUENTIAL SOLVER =====================
@@ -28,15 +29,31 @@ double SequentialSolver::forcing(int i) const {
 }
 
 void SequentialSolver::assemble() {
-    double diag_off = -mu / (h * h);
-    double diag_mid = 2.0 * mu / (h * h) + c;
-    
-    for (int i = 0; i < N; ++i) {
-        A[i] = diag_off;
-        B[i] = diag_mid;
-        C[i] = diag_off;
-        R[i] = forcing(i);
-    }
+    // Initialize RHS
+    R.assign(N, 0.0);
+
+    double diag_off = -mu / (h*h);
+    double diag_mid = 2.0 * mu / (h*h) + c;
+
+    // Assign coefficients
+    A.assign(N, diag_off);  // coefficients of u_{i-1}
+    B.assign(N, diag_mid);  // coefficients of u_i
+    C.assign(N, diag_off);  // coefficients of u_{i+1}
+
+    // RHS: evaluate forcing at node position
+    // Create a vector of indices
+    std::vector<int> indices(N);
+    // Fill the vector with a sequence of consecutive integers
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // Apply lambda function to each element of the vector
+    std::for_each(
+        indices.begin(),
+        indices.end(),
+        [this](int i) {
+            this->R[i] = this->forcing(i);
+        }
+    );
 }
 
 void SequentialSolver::apply_boundary_conditions() {
