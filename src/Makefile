@@ -3,7 +3,7 @@
 # ======================================================
 
 CXX      := mpicxx
-CXXFLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic
+CXXFLAGS := -O2 -std=c++20 -Wall -Wextra -pedantic
 LDFLAGS  :=
 TARGET   := schwarz_mpi
 
