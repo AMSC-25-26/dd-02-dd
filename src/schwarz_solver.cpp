@@ -43,9 +43,6 @@ LocalProblem::LocalProblem(int Nnodes_global,
     
 }
 
-// Forcing term f(x); here constant
-double LocalProblem::forcing(int, double) const { return 1.0; }
-
 // ASSEMBLE LOCAL TRIDIAGONAL SYSTEM
 // h = mesh size
 void LocalProblem::assemble(double h) {
