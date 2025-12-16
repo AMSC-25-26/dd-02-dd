@@ -145,16 +145,16 @@ int main(int argc, char** argv) {
     if (rank == 0) {
         std::cout << "\n Press ENTER, '.' or '-' to keep default values (shown in brackets)\n\n";
 
-        ask_param("Number of grid nodes:", Nnodes);
-        ask_param("Overlap size (in number of nodes):", overlap_l);
-        ask_param("Diffusion coefficient mu:", mu);
-        ask_param("Reaction coefficient c:", c);
-        ask_param("Left domain boundary a:", a);
-        ask_param("Right domain boundary b:", b);
-        ask_param("Dirichlet left BC ua:", ua);
-        ask_param("Dirichlet right BC ub:", ub);
-        ask_param("Maximum number of iterations:", max_it);
-        ask_param("Tolerance:", tol);
+        ask_param("Number of grid nodes", Nnodes);
+        ask_param("Overlap size (in number of nodes)", overlap_l);
+        ask_param("Diffusion coefficient mu", mu);
+        ask_param("Reaction coefficient c", c);
+        ask_param("Left domain boundary a", a);
+        ask_param("Right domain boundary b", b);
+        ask_param("Dirichlet left BC ua", ua);
+        ask_param("Dirichlet right BC ub", ub);
+        ask_param("Maximum number of iterations", max_it);
+        ask_param("Tolerance", tol);
 
         int run_sequential_int = run_sequential ? 1 : 0;
         ask_param("Run sequential solver? (1=yes, 0=no)", run_sequential_int);
