@@ -363,7 +363,7 @@ void SchwarzSolver::gather_and_save() {
             if (counts[i] > 0) u_global[i] /= counts[i];
 
         // Write x and u in the global solution
-        std::ofstream ofs("solution.csv");
+        std::ofstream ofs("parallel_solution.csv");
         ofs << "x,u_p\n";
         double h = (b-a)/(Nglob-1);
         for (int i = 0; i < Nglob; ++i)
