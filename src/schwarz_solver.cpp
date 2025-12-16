@@ -370,7 +370,7 @@ void SchwarzSolver::gather_and_save() {
             ofs << a + i*h << "," << u_global[i] << "\n";
 
         ofs.close();
-        std::cout << "\nSolution saved to 'solution.csv'\n";
+        std::cout << "\nSolution saved to 'parallel_solution.csv'\n";
 
     }
     else {
