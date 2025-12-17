@@ -11,8 +11,9 @@
 // ======================================================
 
 SequentialSolver::SequentialSolver(int Nnodes, double mu_, double c_, double a_,
-                                   double b_, double ua_, double ub_)
-    : N(Nnodes), mu(mu_), c(c_), a(a_), b(b_), ua(ua_), ub(ub_)
+                                   double b_, double ua_, double ub_,
+                                   std::function<double(double)> forcing_func)
+    : N(Nnodes), mu(mu_), c(c_), a(a_), b(b_), ua(ua_), ub(ub_), forcing(forcing_func)
 {
     h = (b - a) / (N - 1);
     u.assign(N, 0.0);
@@ -20,12 +21,6 @@ SequentialSolver::SequentialSolver(int Nnodes, double mu_, double c_, double a_,
     B.assign(N, 0.0);
     C.assign(N, 0.0);
     R.assign(N, 0.0);
-}
-
-double SequentialSolver::forcing(int i) const {
-    double x = a + i * h;  // Position along the domain [a,b]
-    (void)x;               // Suppress unused variable warning
-    return 1.0;            // Example: constant forcing term
 }
 
 void SequentialSolver::assemble() {
@@ -51,7 +46,7 @@ void SequentialSolver::assemble() {
         indices.begin(),
         indices.end(),
         [this](int i) {
-            this->R[i] = this->forcing(i);
+            this->R[i] = this->forcing(this->a + i*this->h);
         }
     );
 }

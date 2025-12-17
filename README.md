@@ -72,11 +72,11 @@ $$
 
    Closed-form solutions are available for the following right-hand sides.
 
-   **Case 1: $f(x) = \sin(\pi x)$**
+   **Case 1: $f(x) = \sin(2 \pi x)$**
 
 $$
    \begin{aligned}
-   u(x) &= \frac{1}{\mu \pi^2 + c} \sin(\pi x) .
+   u(x) &= \frac{1}{4 \mu \pi^2 + c} \sin(2 \pi x) .
    \end{aligned}
 $$
 
@@ -111,4 +111,23 @@ $$
 
 # Run
 
-You can take a look into `2-DD.ipynb` for the solution and run it on [Google Colab 2-DD.ipynb](https://colab.research.google.com/github/AMSC-25-26/dd-02-dd/blob/main/2-DD.ipynb).
+You can take a look into `2-DD.ipynb` for the solution and 
+
+Run it on [Google Colab 2-DD.ipynb](https://colab.research.google.com/github/AMSC-25-26/dd-02-dd/blob/main/2-DD.ipynb).
+
+OR
+
+[![GitHub Codespaces](https://github.com/codespaces/badge.svg)](
+  https://codespaces.new/AMSC-25-26/dd-02-dd
+)
+
+## Install and Run on a local computer
+
+Considering you have make dependencies installed on your local computer, you can run the program using:
+
+```
+cd src
+make all
+#make help
+make run
+```

@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <cassert>
 #include <execution>
+#include <functional>
 
 // ======================================================
 // ==================== LOCAL PROBLEM ===================
@@ -29,10 +30,8 @@ public:
                  int overlap_l,
                  double mu_, double c_,
                  double a_, double b_,
-                 double ua_, double ub_);
-
-    // Forcing term f(x), right-hand side of the differential equation
-    double forcing(int, double) const;
+                 double ua_, double ub_,
+                 std::function<double(double)> forcing_func);
 
     // Assemble local tridiagonal system
     void assemble(double h);
@@ -77,6 +76,9 @@ private:
 
     std::vector<double> u, u_old;
     std::vector<double> A, B, C, R;
+
+    // Store forcing function
+    std::function<double(double)> forcing;
 };
 
 
@@ -106,7 +108,8 @@ public:
                   int overlap_l, double mu, double c,
                   double a, double b,
                   double ua, double ub,
-                  int max_iter, double tol);
+                  int max_iter, double tol,
+                  std::function<double(double)> forcing_func);
 
     // Destructor: free local problem
     ~SchwarzSolver();
@@ -127,6 +130,8 @@ private:
     int left, right;
 
     LocalProblem *local;
+
+    std::function<double(double)> forcing;
 
     // Collects the local solutions and constructs 
     // u_global by averaging in the overlap points

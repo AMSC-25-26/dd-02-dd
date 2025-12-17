@@ -12,11 +12,12 @@ LocalProblem::LocalProblem(int Nnodes_global,
                            int overlap_l,
                            double mu_, double c_,
                            double a_, double b_,
-                           double ua_, double ub_)
+                           double ua_, double ub_,
+                           std::function<double(double)> forcing_func)
     : Nglob(Nnodes_global),
       core_s(core_start), core_e(core_end),
       l(overlap_l), mu(mu_), c(c_), a(a_), b(b_),
-      ua(ua_), ub(ub_)
+      ua(ua_), ub(ub_), forcing(forcing_func)
 {
   // Extend core: every local subproblem needs l extra neighbor nodes
   // on each side (if available from neighboring subdomains).
@@ -41,9 +42,6 @@ LocalProblem::LocalProblem(int Nnodes_global,
   u_old.assign(ext_size, 0.0);
     
 }
-
-// Forcing term f(x); here constant
-double LocalProblem::forcing(int, double) const { return 1.0; }
 
 // ASSEMBLE LOCAL TRIDIAGONAL SYSTEM
 // h = mesh size
@@ -71,8 +69,7 @@ void LocalProblem::assemble(double h) {
         local_indices.begin(),
         local_indices.end(),
         [this, h, es = ext_s](int i) {
-            int gidx = es + i;
-            this->R[i] = this->forcing(gidx, h);
+            this->R[i] = this->forcing(this->a + (es + i)*h);
         }
     );
 }
@@ -165,11 +162,13 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
                              int overlap_l, double mu, double c,
                              double a, double b,
                              double ua, double ub,
-                             int max_iter, double tol)
+                             int max_iter, double tol,
+                             std::function<double(double)> forcing_func)
     : Nglob(Nnodes_global), rank(mpi_rank), size(mpi_size),
       l(overlap_l), mu(mu), c(c), a(a), b(b), ua(ua), ub(ub),
-      max_iter(max_iter), tol(tol)
+      max_iter(max_iter), tol(tol), forcing(forcing_func)
 {
+  
   // DOMAIN PARTITIONING
   // Load balancing: first 'rem' processes get one extra node
   int base = Nglob / size;    // base number of nodes per rank
@@ -180,7 +179,7 @@ SchwarzSolver::SchwarzSolver(int Nnodes_global,
   core_end   = core_start + core_size - 1;         // ending global index of this process' core (inclusive)
 
   // Create local problem
-  local = new LocalProblem(Nglob, core_start, core_end, l, mu, c, a, b, ua, ub);
+  local = new LocalProblem(Nglob, core_start, core_end, l, mu, c, a, b, ua, ub, forcing);
 
   // MPI NEIGHBOR IDENTIFICATION for excanging boundary values
   // If this process does not have left/right neighbor, set it to
