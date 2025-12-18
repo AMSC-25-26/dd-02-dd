@@ -5,10 +5,19 @@
 CXX      := mpicxx
 CXXFLAGS := -O2 -std=c++20 -Wall -Wextra -pedantic
 LDFLAGS  :=
-TARGET   := schwarz_mpi
+
+# =========================
+# DIRECTORIES
+# =========================
+SRC_DIR    := .
+INC_DIR    := ../include
+BUILD_DIR  := ../build
+OUTPUT_DIR := ../output
+
+TARGET := $(BUILD_DIR)/schwarz_mpi
 
 SRCS := main.cpp schwarz_solver.cpp sequential_solver.cpp
-OBJS := $(SRCS:.cpp=.o)
+OBJS := $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
 # =========================
 # DEFAULT RUN PARAMETERS
@@ -41,8 +50,9 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-%.o: %.cpp schwarz_solver.hpp sequential_solver.hpp thomas.hpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -c $< -o $@
 
 # =========================
 # RUN TARGETS
@@ -51,33 +61,36 @@ $(TARGET): $(OBJS)
 # ---- INTERACTIVE RUN ----
 # No command-line arguments -> terminal input is used
 run: $(TARGET)
-	mpirun -np $(NPROC) ./$(TARGET)
+	@mkdir -p $(OUTPUT_DIR)
+	cd $(OUTPUT_DIR) && mpirun -np $(NPROC) $(abspath $(TARGET))
 
 # ---- BATCH RUN WITH ARGS ----
 # Parameters passed from Makefile variables
 run_args: $(TARGET)
-	mpirun -np $(NPROC) ./$(TARGET) $(ARGS)
+	@mkdir -p $(OUTPUT_DIR)
+	cd $(OUTPUT_DIR) && mpirun -np $(NPROC) $(abspath $(TARGET)) $(ARGS)
 
 # ---- SEQUENTIAL ONLY ----
 run_seq: $(TARGET)
-	mpirun -np 1 ./$(TARGET)
+	@mkdir -p $(OUTPUT_DIR)
+	cd $(OUTPUT_DIR) && mpirun -np 1 $(abspath $(TARGET))
 
 # =========================
 # CLEAN
 # =========================
 clean:
-	rm -f $(TARGET) $(OBJS) *.csv
+	rm -rf $(BUILD_DIR) $(OUTPUT_DIR)
 
 # =========================
 # HELP
 # =========================
 help:
+	@echo "Directories:"
+	@echo "  include/             -> header files (.hpp)"
+	@echo "  build/               -> object files and executable"
+	@echo "  output/              -> runtime outputs"
+	@echo ""
 	@echo "Targets:"
 	@echo "  make run                 -> interactive input"
 	@echo "  make run_args            -> run with Makefile parameters"
 	@echo "  make run_seq             -> sequential interactive run"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make run"
-	@echo "  make run_args NNODES=500 MU=0.05 FORCING=4"
-	@echo "  make run NPROC=8"
