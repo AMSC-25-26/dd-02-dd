@@ -200,46 +200,46 @@ Take a look into [`2-DD.ipynb`](2-DD.ipynb) to find the implementation of four c
 
    The continuous problem reads
 
-   $$
-      \begin{cases}
-      -\mu u''(x) + cu(x) = f(x) \qquad x \in (a,b) \\
-      u(a)=u_a, \qquad u(b)=u_b
-      \end{cases}
-   $$
+$$
+  \begin{cases}
+  -\mu u''(x) + cu(x) = f(x) \qquad x \in (a,b) \\
+  u(a)=u_a, \qquad u(b)=u_b
+  \end{cases}
+$$
 
    Closed-form solutions are available for the following right-hand sides.
 
    **Case 1: $f(x) = \sin(2 \pi x)$**
 
-   $$
-      \begin{aligned}
-      u(x) &= \frac{1}{4 \mu \pi^2 + c} \sin(2 \pi x) 
-      \end{aligned}
-   $$
+$$
+  \begin{aligned}
+  u(x) &= \frac{1}{4 \mu \pi^2 + c} \sin(2 \pi x) 
+  \end{aligned}
+$$
 
    **Case 2: $f(x) = 1$**
 
    For $c > 0$:
 
-   $$
-      \begin{aligned}
-      u(x)
-      &=
-      \frac{1}{c}
-      \left[
-      1 -
-      \frac{\cosh \left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
-         {\cosh \left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
-      \right] 
-      \end{aligned}
-   $$
+$$
+  \begin{aligned}
+  u(x)
+  &=
+  \frac{1}{c}
+  \left[
+  1 -
+  \frac{\cosh \left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
+     {\cosh \left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
+  \right] 
+  \end{aligned}
+$$
 
    In the limiting Poisson case $c=0$:
 
 $$
-   \begin{aligned}
-   u(x) &= \frac{x(L-x)}{2\mu} 
-   \end{aligned}
+  \begin{aligned}
+  u(x) &= \frac{x(L-x)}{2\mu} 
+  \end{aligned}
 $$
 
    These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical solvers.
