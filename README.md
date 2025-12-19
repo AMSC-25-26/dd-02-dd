@@ -150,14 +150,14 @@ The file `main.cpp` provides 7 different choices for the forcing function $f(x)$
 ## Details on MPI
 
 In Schwarz method, communication occurs in `SchwarzSolver::run()`:
-1. A vector of length `L` is extracted from the overlap region of local lore.
+1. A vector of length `L` is extracted from the overlap region of local core.
 2. Data are exchanged (simultaneous send and receive to avoid deadlocks) using `MPI_Sendrecv`.
 
     <u>Note</u>: processes at the boundaries of global domain are automatically handled by using `MPI_PROC_NULL`.
 
 <br />
 
-**Key parameter**: `overlap_l`, which is the number of shared nodes.
+<u>Key parameter</u>: `overlap_l`, which is the number of shared nodes.
 
 - `overlap_l` $\nearrow$ implies faster convergence but produces more communication overhead
 - `overlap_l` $\searrow$ needs less communication but convergence is slower
@@ -175,6 +175,8 @@ At the end of the loop, Rank 0 gathers and saves the final solution:
 In general, the code generates two `.csv` files:
 1. `sequential_solution.csv`, which holds the result of the direct solver.
 2. `parallel_solution.csv`, which holds the result of MPI parallel solver.
+
+<br />
 
 # Tests
 
@@ -196,51 +198,51 @@ Take a look into [`2-DD.ipynb`](2-DD.ipynb) to find the implementation of four c
 
 4. **Exact Analytical Solution (Verification Benchmark)**  
 
-      The continuous problem reads
+   The continuous problem reads
 
 $$
-   \begin{aligned}
-   -\mu u''(x) + c u(x) = f(x), \qquad x \in (0,L), \\
-   u(0) = 0, \qquad u(L) = 0 .
-   \end{aligned}
+  \begin{cases}
+  -\mu u''(x) + cu(x) = f(x) \qquad x \in (a,b) \\
+  u(a)=u_a, \qquad u(b)=u_b
+  \end{cases}
 $$
 
-   Closed-form solutions are available for the following right-hand sides.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Closed-form solutions are available for the following right-hand sides.
 
-   **Case 1: $f(x) = \sin(2 \pi x)$**
-
-$$
-   \begin{aligned}
-   u(x) &= \frac{1}{4 \mu \pi^2 + c} \sin(2 \pi x) .
-   \end{aligned}
-$$
-
-   **Case 2: $f(x) = 1$**
-
-   For $c > 0$:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Case 1: $f(x) = \sin(2 \pi x)$**
 
 $$
-   \begin{aligned}
-   u(x)
-   &=
-   \frac{1}{c}
-   \left[
-   1 -
-   \frac{\cosh \left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
-        {\cosh \left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
-   \right] .
-   \end{aligned}
+  \begin{aligned}
+  u(x) &= \frac{1}{4 \mu \pi^2 + c} \sin(2 \pi x) 
+  \end{aligned}
 $$
 
-   In the limiting Poisson case $c=0$:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Case 2: $f(x) = 1$**
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For $c > 0$:
 
 $$
-   \begin{aligned}
-   u(x) &= \frac{x(L-x)}{2\mu} .
-   \end{aligned}
+  \begin{aligned}
+  u(x)
+  &=
+  \frac{1}{c}
+  \left[
+  1 -
+  \frac{\cosh \left(\sqrt{\frac{c}{\mu}}\left(x-\frac{L}{2}\right)\right)}
+     {\cosh \left(\sqrt{\frac{c}{\mu}}\frac{L}{2}\right)}
+  \right] 
+  \end{aligned}
 $$
 
-   These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical solvers.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In the limiting Poisson case $c=0$:
+
+$$
+  \begin{aligned}
+  u(x) &= \frac{x(L-x)}{2\mu} 
+  \end{aligned}
+$$
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical solvers.
 
 <br />
 
@@ -248,6 +250,8 @@ The test is runnable on [Google Colab 2-DD.ipynb](https://colab.research.google.
 [![GitHub Codespaces](https://github.com/codespaces/badge.svg)](
   https://codespaces.new/AMSC-25-26/dd-02-dd
 )
+
+<br />
 
 # Code usage
 
@@ -276,17 +280,19 @@ At this point, it is possible to run the program in different modes:
 
 Each command writes `.csv` files which contain the computed solution and can be found in another new folder called `\output`.
 
+<br />
+
 # Visualization
 
 To visualize the obtained results, it is suggested to use [ParaView](https://www.paraview.org) by following these instructions: 
 1. Open **ParaView** on your local computer.
 2. Copy the path to the `.csv` file you want to visualize.
-3. Click on **File > Open** and paste the path of your file.
+3. Click on **File > Open** and paste the path to your file.
 4. On the right side of the window, select **Line Chart View**.
 5. Go to the **Properties** panel:
     - Deselect &nbsp; $\square$ **Use Index For X Axis**.
     - Choose **x** as **X Array Name**.
     - Deselect &nbsp; $\square$ **x** &nbsp; from the **Series Parameters**.
     - *Optional*: double click on the coloured circle in **Series Parameters** to choose a different color for your graph.
-    - *Optional*: adjust **Bottom Axis Range** and **Left Axis Range** in such a way that your graph is visualized in a proper way.
+    - *Optional*: adjust **Bottom Axis Range** and **Left Axis Range** in such a way that your graph is visualized properly.
 
