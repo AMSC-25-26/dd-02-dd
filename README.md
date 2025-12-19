@@ -83,7 +83,7 @@ The project has three main components:
 
     Key methods:
     - `assemble()`, which constructs the local linear system.
-    - `apply_dirichlet()`, which applies boundary conditions to each loacl problem.
+    - `apply_dirichlet()`, which applies boundary conditions to each local problem.
     - `solve_local()`, which solves the local problem using Thomas algorithm.
     - `save_old()`, which saves solution to check for convergence.
     - `local_error_sqr()`, which computes local $\text{L}^2$ error between consecutive iterations.
