@@ -242,8 +242,7 @@ $$
   \end{aligned}
 $$
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; solvers.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; These exact solutions serve as verification benchmarks to assess discretization errors and validate the convergence of numerical solvers.
 
 <br />
 
