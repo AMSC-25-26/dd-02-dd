@@ -207,9 +207,9 @@ $$
   \end{cases}
 $$
 
-&nbsp;&nbsp;&nbsp;&nbsp;Closed-form solutions are available for the following right-hand sides.
+&nbsp;&nbsp;&nbsp;&nbsp; Closed-form solutions are available for the following right-hand sides.
 
-&nbsp;&nbsp;&nbsp;&nbsp;**Case 1: $f(x) = \sin(2 \pi x)$**
+&nbsp;&nbsp;&nbsp;&nbsp; **Case 1: $f(x) = \sin(2 \pi x)$**
 
 $$
   \begin{aligned}
@@ -217,9 +217,9 @@ $$
   \end{aligned}
 $$
 
-&nbsp;&nbsp;&nbsp;&nbsp;**Case 2: $f(x) = 1$**
+&nbsp;&nbsp;&nbsp;&nbsp; **Case 2: $f(x) = 1$**
 
-&nbsp;&nbsp;&nbsp;&nbsp;For $c > 0$:
+&nbsp;&nbsp;&nbsp;&nbsp; For $c > 0$:
 
 $$
   \begin{aligned}
@@ -234,7 +234,7 @@ $$
   \end{aligned}
 $$
 
-&nbsp;&nbsp;&nbsp;&nbsp;In the limiting Poisson case $c=0$:
+&nbsp;&nbsp;&nbsp;&nbsp; In the limiting Poisson case $c=0$:
 
 $$
   \begin{aligned}
@@ -242,7 +242,7 @@ $$
   \end{aligned}
 $$
 
-&nbsp;&nbsp;&nbsp;&nbsp;These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical solvers.
+&nbsp;&nbsp;&nbsp;&nbsp; These exact solutions are used as verification benchmarks to assess discretization errors and validate the convergence of the numerical solvers.
 
 <br />
 
